@@ -87,30 +87,7 @@
                 document.addEventListener('keydown',onKeyDown,false);
                 document.addEventListener('keyup',onKeyUp,false);
 
-                const geometry=new THREE.CubeGeometry(10000,10000,10000);
-
-                const manager = new THREE.LoadingManager();
-                const loader = new THREE.TextureLoader(manager);
-
-                const tex1 = loader.load( 'img/skydome.jpg' );
-                const tex2 = loader.load( 'img/grass-texture.jpg' );
-
-                manager.onLoad = function() {
-
-                    const cubeMaterials= [
-                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}),
-                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}),
-                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}),
-                        new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}),
-                        new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}),
-                        new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide})
-                    ];
-
-                    const cube=new THREE.Mesh(geometry,cubeMaterials);
-                    scene.add(cube);
-
-
-                };                
+                loadSkyBox();
             
                 renderer = new THREE.WebGLRenderer({antialias:true});
                 renderer.setPixelRatio(window.devicePixelRatio);
@@ -152,6 +129,35 @@
                 }
 
                 renderer.render(scene,camera);
+            }
+
+            function loadSkyBox()
+            {
+                const geometry=new THREE.CubeGeometry(100000,10000,100000);
+
+                const manager = new THREE.LoadingManager();
+                const loader = new THREE.TextureLoader(manager);
+
+                const tex1 = loader.load( 'img/sky2.jpg' );
+                const tex2 = loader.load( 'img/grass-texture.jpg' );
+                const tex3 = loader.load( 'img/sky1.jpg' );
+
+                manager.onLoad = function() {
+
+                    const cubeMaterials= [
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //left
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //right
+                        new THREE.MeshBasicMaterial({map:tex3, side:THREE.DoubleSide}), //up
+                        new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}), //down
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //front 
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide})  //back
+                    ];
+
+                    const cube=new THREE.Mesh(geometry,cubeMaterials);
+                    scene.add(cube);
+
+
+                };
             }
 
 
