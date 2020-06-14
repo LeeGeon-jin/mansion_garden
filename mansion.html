@@ -11,34 +11,45 @@
     <script src="js/three.js"></script>
     <script>
       var scene=new THREE.Scene();
+      scene.background=new THREE.Color(0x87ceeb);
       var camera=new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
       var renderer = new THREE.WebGLRenderer();
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
 
+      camera.position.z=5;
       renderer.render(scene,camera);
     </script>
 
+    <script>
+      var loader=new THREE.TextureLoader();
+    </script>
+
   <script>
-    var skyDomeTextureLoader = new THREE.TextureLoader();
 
-    var skyDomeGeometry = new THREE.SphereGeometry(2000, 50, 50);
-    var uniforms = {
-        texture: { type: 't', value: THREE.ImageUtils.loadTexture('img/skydome.jpg') }
-    };
+    var geometry_cube=new THREE.BoxGeometry(1,1,1);
+    var material_cube=new THREE.MeshBasicMaterial({color:0x00ff00});
+    var cube=new THREE.Mesh(geometry_cube,material_cube);
+    scene.add(cube);
 
-    var skyDomeMaterial = new THREE.ShaderMaterial( {
-        uniforms:       uniforms,
-        vertexShader:   document.getElementById('vertex').textContent,
-        fragmentShader: document.getElementById('fragment').textContent
-    } );
+    renderer.render(scene,camera);
 
-    var skyDome = new THREE.Mesh(skyDomeGeometry, skyDomeMaterial);
-    skyDome.scale.set(-1, 1, 1);
-    skyDome.eulerOrder = 'XZY';
-    skyDome.renderDepth = 1000.0;
-    scene.add(skyDome);
+    var groundTexture=loader.load("img/grass-texture.jpg");
+    groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+				groundTexture.repeat.set( 25, 25 );
+				groundTexture.anisotropy = 16;
+				groundTexture.encoding = THREE.sRGBEncoding;
+
+				var groundMaterial = new THREE.MeshLambertMaterial( { map: groundTexture } );
+
+				var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 20000, 20000 ), groundMaterial );
+				mesh.position.y = - 250;
+				mesh.rotation.x = - Math.PI / 2;
+				mesh.receiveShadow = true;
+				scene.add( mesh );
+    
+    renderer.render(scene,camera);
   </script>
   </body>
 </html>
