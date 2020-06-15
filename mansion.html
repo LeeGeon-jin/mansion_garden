@@ -14,17 +14,23 @@
     <script>
     //create scene and camera
       var scene=new THREE.Scene();
+<<<<<<< HEAD
       var ratio = window.innerWidth/window.innerHeight;
       var camera = new THREE.PerspectiveCamera(50,ratio,1,1000);
 
       camera.position.set(0,0,5);
       camera.lookAt(0,-15,0);
+=======
+      scene.background=new THREE.Color(0x87ceeb);
+      var camera=new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+>>>>>>> 771f8ab20abfa745b3fa74e6f34534a713dd34c0
 
       var renderer = new THREE.WebGLRenderer();
 			renderer.setSize( window.innerWidth, window.innerHeight );
 
 			document.body.appendChild( renderer.domElement );
 
+<<<<<<< HEAD
       //renderer.render(scene,camera);
 
       //create floor
@@ -69,5 +75,40 @@
         renderer.render(scene,camera);
       };
     </script>
+=======
+      camera.position.z=5;
+      renderer.render(scene,camera);
+    </script>
+
+    <script>
+      var loader=new THREE.TextureLoader();
+    </script>
+
+  <script>
+
+    var geometry_cube=new THREE.BoxGeometry(1,1,1);
+    var material_cube=new THREE.MeshBasicMaterial({color:0x00ff00});
+    var cube=new THREE.Mesh(geometry_cube,material_cube);
+    scene.add(cube);
+
+    renderer.render(scene,camera);
+
+    var groundTexture=loader.load("img/grass-texture.jpg");
+    groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+				groundTexture.repeat.set( 25, 25 );
+				groundTexture.anisotropy = 16;
+				groundTexture.encoding = THREE.sRGBEncoding;
+
+				var groundMaterial = new THREE.MeshLambertMaterial( { map: groundTexture } );
+
+				var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 20000, 20000 ), groundMaterial );
+				mesh.position.y = - 250;
+				mesh.rotation.x = - Math.PI / 2;
+				mesh.receiveShadow = true;
+				scene.add( mesh );
+    
+    renderer.render(scene,camera);
+  </script>
+>>>>>>> 771f8ab20abfa745b3fa74e6f34534a713dd34c0
   </body>
 </html>

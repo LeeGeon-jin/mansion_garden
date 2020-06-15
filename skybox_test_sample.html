@@ -1,0 +1,39 @@
+<html>
+    <body>
+        <script src="js/three.js"></script>
+        <script>
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000 );
+
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            const geometry=new THREE.CubeGeometry(10000,10000,10000);
+
+            const manager = new THREE.LoadingManager();
+            const loader = new THREE.TextureLoader(manager);
+
+            const tex1 = loader.load( 'https://threejs.org/examples/textures/crate.gif' );
+            const tex2 = loader.load( 'https://threejs.org/examples/textures/uv_grid_opengl.jpg' );
+
+            manager.onLoad = function() {
+
+                const cubeMaterials= [
+                    new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}),
+                    new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}),
+                    new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}),
+                    new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}),
+                    new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}),
+                    new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide})
+                ];
+
+                const cube=new THREE.Mesh(geometry,cubeMaterials);
+                scene.add(cube);
+
+                renderer.render(scene,camera);
+
+            };
+        </script>
+    </body>
+</html>
