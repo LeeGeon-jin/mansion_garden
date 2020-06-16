@@ -2,6 +2,8 @@
     <body>
         <script src="js/three.js"></script>
         <script src="js/PointerLockControls.js"></script>
+        <script src="js/OBJLoader.js"></script>
+        <script src="js/MTLLoader.js"></script>
 
         <script>
             //const scene = new THREE.Scene();
@@ -88,6 +90,7 @@
                 document.addEventListener('keyup',onKeyUp,false);
 
                 loadSkyBox();
+                loadHouse();
             
                 renderer = new THREE.WebGLRenderer({antialias:true});
                 renderer.setPixelRatio(window.devicePixelRatio);
@@ -163,6 +166,40 @@
 
 
                 };
+            }
+
+            function loadHouse()
+            {
+
+                var mtlLoader=new THREE.MTLLoader();
+                mtlLoader.load(
+                    "model/house/house_10.mtl", function(materials){
+                        materials.preload();
+
+                        var objLoader=new THREE.OBJLoader();
+                        objLoader.setMaterials(materials);
+                        objLoader.load(
+                            //resource url
+                            "model/house/house_10.obj",
+                            //called when resource is loaded
+                            function(object){
+                                object.position.y=-49;
+                                scene.add(object);
+                            },
+                            //called when loading is in progresses  
+                            function(xhr){
+                                console.log((xhr.loaded/xhr.total*100)+'% loaded');
+                            },
+                            //called when loading has errors
+                            function (error){
+                                console.log('An error happened'+error);
+                            }
+                        );
+
+                    }
+                );
+
+
             }
 
 
