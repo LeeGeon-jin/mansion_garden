@@ -6,7 +6,7 @@
         <script>
             //const scene = new THREE.Scene();
             //const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000 );
-            
+
             //fp view control variables
             var camera, scene, renderer, controls;
 
@@ -25,7 +25,7 @@
 			var params = {
 				exposure: 1,
 			};
-			
+
             function init(){
                 var ratio=window.innerWidth/window.innerHeight;
                 camera=new THREE.PerspectiveCamera(45,ratio,0.1,100000);
@@ -92,20 +92,22 @@
                 document.addEventListener('keyup',onKeyUp,false);
 
                 loadSkyBox();
-            
+
                 renderer = new THREE.WebGLRenderer({antialias:true});
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 document.body.appendChild( renderer.domElement );
 
                 window.addEventListener('resize',onWindowResize,false);
-                
-				gui2 = new dat.GUI( { width: 350 } );
-				gui2.add( params, 'exposure', 0, 1 );
-				gui2.domElement.style = 'position:absolute;top:20px;left:0px';
-               
-                
+              }
+
+
+            function UI(){
+                gui2 = new dat.GUI( { width: 350 } );
+                gui2.add( params, 'exposure', 0, 1 );
+                gui2.domElement.style = 'position:absolute;top:20px;left:0px';
             }
+
 
             function onWindowResize(){
                 camera.aspect=window.innerWidth/window.innerHeight;
@@ -113,6 +115,7 @@
                 renderer.setSize(window.innerWidth,window.innerHeight);
             }
             init();
+            UI();
             animate();
 
             function animate(){
@@ -137,13 +140,13 @@
 
                     prevTime=time;
                 }
-				
+
 				if(cube){
 					for (var i = 0; i < cube.material.length; i++) {
 						cube.material[i].color.setRGB(params.exposure,params.exposure,params.exposure)
 					}
 				}
-				
+
                 renderer.render(scene,camera);
             }
 
@@ -165,13 +168,13 @@
                         new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //right
                         new THREE.MeshBasicMaterial({map:tex3, side:THREE.DoubleSide}), //up
                         new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}), //down
-                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //front 
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //front
                         new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide})  //back
                     ];
 
                     cube=new THREE.Mesh(geometry,cubeMaterials);
                     scene.add(cube);
-					
+
                 };
             }
 
