@@ -1,0 +1,241 @@
+<html>
+    <body>
+        <script src="js/three.js"></script>
+        <script src="js/PointerLockControls.js"></script>
+    	<script src="js/dat.gui.min.js"></script>
+        <script>
+            //const scene = new THREE.Scene();
+            //const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000 );
+            
+            //fp view control variables
+            var camera, scene, renderer, controls;
+
+            var controlsEnabled=true;
+
+            var moveForward=false;
+            var moveBackward=false;
+            var moveLeft=false;
+            var moveRight=false;
+
+            var prevTime=performance.now();
+            var velocity=new THREE.Vector3();
+            var direction=new THREE.Vector3();
+            var color=new THREE.Color();
+            var cube;
+			var params = {
+				exposure: 1,
+			};
+			var Smogs111 = [];
+			var SmogGeometry11;
+			var wuyun11 ;
+			var tempMateria11;
+			var SWtrue2 = false;
+		    var params1 = {
+		      wather3: function () {
+		        wather33();
+		      },
+		    }			
+			
+            function init(){
+                var ratio=window.innerWidth/window.innerHeight;
+                camera=new THREE.PerspectiveCamera(45,ratio,0.1,100000);
+                var Pos=new THREE.Vector3(0,0,0);
+                camera.position.set(Pos.x,Pos.y,Pos.z);
+                var Dir=new THREE.Vector3(0,0,1);
+                camera.lookAt(Dir.x,Dir.y,Dir.z);
+
+                scene=new THREE.Scene();
+
+
+                controls=new THREE.PointerLockControls(camera);
+                controls.enabled=true;
+                scene.add(controls.getObject());
+
+                var onKeyDown=function(event){
+                    switch(event.keyCode){
+                        case 38: //up
+                        case 87: //w
+                            moveForward=true;
+                            break;
+
+                        case 37: //left
+                        case 65: //a
+                            moveLeft=true;
+                            break;
+
+                        case 40: //down
+                        case 83: //s
+                            moveBackward=true;
+                            break;
+
+                        case 39: //right
+                        case 68: //d
+                            moveRight=true;
+                            break;
+                    }
+                };
+
+                var onKeyUp=function(event){
+                    switch(event.keyCode){
+                        case 38: //up
+                        case 87: //w
+                            moveForward=false;
+                            break;
+
+                        case 37: //left
+                        case 65: //a
+                            moveLeft=false;
+                            break;
+
+                        case 40: //down
+                        case 83: //s
+                            moveBackward=false;
+                            break;
+
+                        case 39: //right
+                        case 68: //d
+                            moveRight=false;
+                            break;
+                    }
+                };
+
+                document.addEventListener('keydown',onKeyDown,false);
+                document.addEventListener('keyup',onKeyUp,false);
+
+                loadSkyBox();
+            
+                renderer = new THREE.WebGLRenderer({antialias:true});
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                document.body.appendChild( renderer.domElement );
+
+                window.addEventListener('resize',onWindowResize,false);
+                
+				gui2 = new dat.GUI( { width: 350 } );
+				gui2.add( params, 'exposure', 0, 1 );
+				gui2.domElement.style = 'position:absolute;top:20px;left:0px';
+				
+			    var generationFolder111 = gui2.addFolder('Wather');
+			        generationFolder111.close();
+			    var genBtn333 = generationFolder111.add(params1, 'wather3');
+			        genBtn333.name("winter");
+              
+                
+            }
+
+            function onWindowResize(){
+                camera.aspect=window.innerWidth/window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth,window.innerHeight);
+            }
+            init();
+            animate();
+
+            function animate(){
+                requestAnimationFrame(animate);
+
+                if(controlsEnabled==true){
+                    var time=performance.now();
+                    var delta=(time-prevTime)/1000;
+
+                    velocity.x-=velocity.x*10.0*delta;
+                    velocity.z-=velocity.z*10.0*delta;
+
+                    direction.z=Number(moveForward)-Number(moveBackward);
+                    direction.x=Number(moveLeft)-Number(moveRight);
+                    direction.normalize();
+
+                    if(moveForward || moveBackward) velocity.z-=direction.z*400.0*delta;
+                    if(moveLeft || moveRight) velocity.x-=direction.x*400.0*delta;
+
+                    controls.getObject().translateX(velocity.x*delta);
+                    controls.getObject().translateZ(velocity.z*delta);
+
+                    prevTime=time;
+                }
+				
+				if(cube){
+					for (var i = 0; i < cube.material.length; i++) {
+						cube.material[i].color.setRGB(params.exposure,params.exposure,params.exposure)
+					}
+				}
+				
+                renderer.render(scene,camera);
+            }
+            
+            
+			  function ItRains(){
+				 requestAnimationFrame( ItRains ); 
+		    		for( var i=0; i<Smogs111.length; i++ ){
+							  var ii = i+1;
+							  if( ii > 3 ){ ii = i/4; }
+							  if( ii < 10 ){ ii = 10*i; }
+							  Smogs111[i].position.y -= ii*0.0002;
+								Smogs111[i].lookAt(camera.position);
+							  if( Smogs111[i].position.y < 0 ){
+									 Smogs111[i].position.y = 140; 
+			  				}  
+						 }
+				 }
+			  
+				function wather33(){
+						if( SWtrue2 == false ){
+			    		for( var i=0; i<Smogs111.length; i++ ){
+			    			Smogs111[i].visible = true;
+			    		}
+								SWtrue2 = true;
+						}else{
+			    		for( var i=0; i<Smogs111.length; i++ ){
+			    			Smogs111[i].visible = false;
+			    		}
+								SWtrue2 = false;				
+						}			
+					}
+            function loadSkyBox()
+            {
+                const geometry=new THREE.CubeGeometry(100000,10000,100000);
+
+                const manager = new THREE.LoadingManager();
+                const loader = new THREE.TextureLoader(manager);
+
+                const tex1 = loader.load( 'img/sky2.jpg' );
+                const tex2 = loader.load( 'img/grass-texture.jpg' );
+                const tex3 = loader.load( 'img/sky1.jpg' );
+
+                manager.onLoad = function() {
+
+                    const cubeMaterials= [
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //left
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //right
+                        new THREE.MeshBasicMaterial({map:tex3, side:THREE.DoubleSide}), //up
+                        new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}), //down
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //front 
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide})  //back
+                    ];
+
+                    cube=new THREE.Mesh(geometry,cubeMaterials);
+                    scene.add(cube);
+					
+                };
+                
+				 SmogGeometry11 = new THREE.PlaneBufferGeometry( 5, 5 );
+				 wuyun11 = new THREE.TextureLoader().load( "img/snowflake1.png" );
+				 tempMateria11 = new THREE.MeshBasicMaterial({map: wuyun11, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+				    for ( var i = 0; i < 200; i++ ) {
+					    for ( var j = 0; j < 200; j++ ) {
+				        	Smogs11 = new THREE.Mesh( SmogGeometry11, tempMateria11 );		
+						    	Smogs11.position.set( -50 + Math.random()*1080 * Math.sin( i * 0.4 ),70,-50 + Math.random()*1080 * Math.cos( j * 0.25 ));		
+									Smogs11.scale.set(0.1,0.1,0.1);
+									Smogs11.visible=false;
+						      		scene.add( Smogs11 );
+						     		Smogs111.push(Smogs11);
+						     		
+					    }
+					  }
+					ItRains();                
+            }
+
+
+        </script>
+    </body>
+</html>
