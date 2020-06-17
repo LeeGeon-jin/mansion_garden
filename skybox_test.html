@@ -91,6 +91,8 @@
 
                 loadSkyBox();
                 loadHouse();
+                loadTree();
+                addLight();
             
                 renderer = new THREE.WebGLRenderer({antialias:true});
                 renderer.setPixelRatio(window.devicePixelRatio);
@@ -172,6 +174,9 @@
             {
 
                 var mtlLoader=new THREE.MTLLoader();
+                //mtlLoader.setTexturePath("model/house/");
+                //mtlLoader.setPath("model/house/");
+
                 mtlLoader.load(
                     "model/house/house_10.mtl", function(materials){
                         materials.preload();
@@ -183,7 +188,9 @@
                             "model/house/house_10.obj",
                             //called when resource is loaded
                             function(object){
-                                object.position.y=-49;
+                                object.position.y=-40;
+                                object.position.z=-100;
+                                object.scale.set(25,25,25);
                                 scene.add(object);
                             },
                             //called when loading is in progresses  
@@ -200,6 +207,52 @@
                 );
 
 
+            }
+
+            function loadTree()
+            {
+
+                var mtlLoader=new THREE.MTLLoader();
+                //mtlLoader.setTexturePath("model/house/");
+                //mtlLoader.setPath("model/house/");
+
+                mtlLoader.load(
+                    "model/tree1/Tree_OBJ.mtl", function(materials){
+                        materials.preload();
+
+                        var objLoader=new THREE.OBJLoader();
+                        objLoader.setMaterials(materials);
+                        objLoader.load(
+                            //resource url
+                            "model/tree1/Tree_OBJ.obj",
+                            //called when resource is loaded
+                            function(object){
+                                object.position.y=-40;
+                                // object.position.z=-100;
+                                object.scale.set(25,25,25);
+                                scene.add(object);
+                            },
+                            //called when loading is in progresses  
+                            function(xhr){
+                                console.log((xhr.loaded/xhr.total*100)+'% loaded');
+                            },
+                            //called when loading has errors
+                            function (error){
+                                console.log('An error happened'+error);
+                            }
+                        );
+
+                    }
+                );
+
+
+            }
+
+            function addLight()
+            {
+                var ambient=new THREE.AmbientLight(0xFFFFFF,1);
+                ambient.position.set(0,0,0);
+                scene.add(ambient);
             }
 
 
