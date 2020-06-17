@@ -2,7 +2,7 @@
 <html>
 <head includeDefault="true">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>???</title>
+    <title>test scene</title>
     <style>
         body {
             margin: 0;
@@ -16,80 +16,62 @@
 </head>
 <body>
     <div id="container"></div>
-
     <script>
 				//<script src="https://threejsfundamentals.org/threejs/resources/threejs/r105/js/loaders/OBJLoader.js">
         var stats = initStats();
-        var scene, camera, renderer, controls, light, speed, directionalLight, gui, currentTime;
-				var matArrayA=[];//内墙
-        var matArrayB=[];//外墙
+        var scene, camera, renderer, controls, gui, currentTime;
+				var matArrayA=[];
+        var matArrayB=[];
         var step = 0;
+        var speed = 10;
         var group = new THREE.Group();
 
-
-
-
-        // 初始化场景
         function initScene() {
             scene = new THREE.Scene();
             scene.fog = new THREE.Fog( scene.background, 3000, 5000 );
+            var cubeGeometry = new THREE.CubeGeometry(100,100,100);
+            var cubeMaterial = new THREE.MeshLambertMaterial({color: 0x00ffff});
+            cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            cube.position.x = 0;
+            cube.position.y = 200;
+            cube.position.z = 0;
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+            scene.add(cube);
         }
         function initGui() {
-            //声明一个保存需求修改的相关数据的对象
             gui = {
-                ambientLight:"#111111", //环境光源
-                directionalLight:"#ffffff", //点光源
-                intensity:1, //灯光强度
-                visible:true, //是否可见
-                castShadow:true,
-                exponent:30,
-                target:"plane",
+                ambientLight:"#111111",
+                directionalLight:"#ffffff",
+                intensity:1,
                 debug:false,
                 time:0,
-                pause:true
-            };
+                pause:false,
+                speed:10
+            };            
             var datGui = new dat.GUI();
-            //将设置属性添加到gui当中，gui.add(对象，属性，最小值，最大值）
             datGui.add(gui,"time",0 ,1440).onChange(function (e) {
               time = e;
             });
+            datGui.add(gui,"speed",0 ,100).onChange(function (e) {
+              speed = e;
+            });
             datGui.add(gui,"pause").onChange(function (e) {
               if(e){
-                //var debug = new THREE.CameraHelper(directionalLight.shadow.camera);
-                //debug.name = "debug";
-                //scene.add(debug);
+                cancelAnimationFrame(id);
               }
               else{
-                //var debug = scene.getObjectByName("debug");
-                //scene.remove(debug);
+                requestAnimationFrame(animate);
               }
             });
             datGui.addColor(gui,"ambientLight").onChange(function (e) {
               ambientLight.color = new THREE.Color(e);
             });
-            //makeXYZGUI(gui, directionalLight.position, 'position');
             datGui.addColor(gui,"directionalLight").onChange(function (e) {
               directionalLight.color = new THREE.Color(e);
             });
             datGui.add(gui,"intensity",0,5).onChange(function (e) {
               directionalLight.intensity = e;
-            });
-            datGui.add(gui,"visible").onChange(function (e) {
-              directionalLight.visible = e;
-            });
-            datGui.add(gui,"castShadow").onChange(function (e) {
-              directionalLight.castShadow = e;
-            });
-            datGui.add(gui,"debug").onChange(function (e) {
-              if(e){
-                var debug = new THREE.CameraHelper(directionalLight.shadow.camera);
-                debug.name = "debug";
-                scene.add(debug);
-              }
-              else{
-                var debug = scene.getObjectByName("debug");
-                scene.remove(debug);
-              }
             });
           }
         // 初始化相机
@@ -102,7 +84,7 @@
 
         // 初始化灯光
         function initLight() {
-            directionalLight = new THREE.DirectionalLight( 0xffffff, 0.9 );//模拟远处类似太阳的光源
+            directionalLight = new THREE.DirectionalLight( 0xffffff, 0.8 );//模拟远处类似太阳的光源
             var target = new THREE.Object3D();
             target.position.set(0, 0, 0);
             scene.add(target);
@@ -110,7 +92,7 @@
 						directionalLight.castShadow = true;
 						directionalLight.color.setHSL( 0.1, 1, 0.95 );
 						directionalLight.shadow.camera.near = 10;
-						directionalLight.shadow.camera.far = 2000;
+						directionalLight.shadow.camera.far = 1500;
 						directionalLight.shadow.camera.left = -500;
 						directionalLight.shadow.camera.right = 500;
 						directionalLight.shadow.camera.top = 600;
@@ -123,7 +105,7 @@
 
             var helper = new THREE.CameraHelper(directionalLight.shadow.camera);
             scene.add(helper);
-            var ambientLight = new THREE.AmbientLight( 0xFFFFFF, 0.1 ); //AmbientLight,影响整个场景的光源
+            ambientLight = new THREE.AmbientLight( 0xFFFFFF, 0.2 ); //AmbientLight,影响整个场景的光源
             ambientLight.position.set(0,0,0);
             scene.add( ambientLight );
 
@@ -152,25 +134,23 @@
             document.body.appendChild(renderer.domElement);
         }
 
-        //创建地板
         function createFloor(){
             var loader = new THREE.TextureLoader();
             loader.load("img/grass-texture.jpg",function(texture){
                 texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set( 20, 20 );
-                var floorGeometry = new THREE.BoxGeometry(1000, 1000, 1);
-                var floorMaterial = new THREE.MeshPhongMaterial( { map: texture, side: THREE.DoubleSide } );
+                texture.repeat.set( 16, 16 );
+                var floorGeometry = new THREE.PlaneGeometry(1000, 1000);
+                var floorMaterial = new THREE.MeshLambertMaterial( { map: texture } );// side: THREE.DoubleSide
                 var floor = new THREE.Mesh(floorGeometry, floorMaterial);
 								floor.receiveShadow = true;
-                //floor.castShadow = true;
+                floor.castShadow = true;
 								floor.position.y = -0.5;
-                floor.rotation.x = Math.PI / 2;
-                floor.name = "地面";
+                floor.rotation.x = -Math.PI / 2;
+                floor.name = "floor";
                 scene.add(floor);
             });
         }
 
-				//创建墙
 				function createCubeWall(width, height, depth, angle, material, x, y, z, name){
 						var cubeGeometry = new THREE.BoxGeometry(width, height, depth );
 						var cube = new THREE.Mesh( cubeGeometry, material );
@@ -179,51 +159,39 @@
 						cube.position.x = x;
 						cube.position.y = y;
 						cube.position.z = z;
-						cube.rotation.y += angle*Math.PI;  //-逆时针旋转,+顺时针
+						cube.rotation.y += angle*Math.PI;
 						cube.name = name;
 						scene.add(cube);
-					}
-					function createWallMaterail(){
+				}
+				function createWallMaterail(){
 	            matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //前  0xafc0ca :灰色
-	            matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //后
+	            matArrayA.push(new THREE.MeshPhongMaterial({color: 0x9cb2d1}));  //后  0x9cb2d1：淡紫
 	            matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //上  0xd6e4ec： 偏白色
 	            matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //下
-	            matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //左    0xafc0ca :灰色
+	            matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //左   0xafc0ca :灰色
 	            matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //右
 
-	            matArrayB.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //前  0xafc0ca :灰色
-	            matArrayB.push(new THREE.MeshPhongMaterial({color: 0x9cb2d1}));  //后  0x9cb2d1：淡紫
-	            matArrayB.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //上  0xd6e4ec： 偏白色
-	            matArrayB.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //下
-	            matArrayB.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //左   0xafc0ca :灰色
-	            matArrayB.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //右
-
-	        }
+	      }
         // 初始化模型
         function initContent() {
             createFloor();
 						createWallMaterail();
-						createCubeWall(10, 50, 1000, 0, matArrayB, -500, 25, 0, "墙面");
-						createCubeWall(10, 50, 1000, 0, matArrayB, 500, 25, 0, "墙面");
-						createCubeWall(10, 50, 1000, 0.5, matArrayB, 0, 25, -500, "墙面");
-						createCubeWall(10, 50, 1000, 0.5, matArrayB, 0, 25, 500, "墙面");
+						createCubeWall(10, 50, 1000, 0, matArrayA, -500, 25, 0, "Wall");
+						createCubeWall(10, 50, 1000, 0, matArrayA, 500, 25, 0, "Wall");
+						createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, -500, "Wall");
+						createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, 500, "Wall");
         }
 
-        // 初始化轨迹球控件
         function initControls() {
             controls = new THREE.OrbitControls( camera, renderer.domElement );
             controls.enableDamping = true;
             controls.dampingFactor = 0.5;
-            // 视角最小距离
             controls.minDistance = 100;
-            // 视角最远距离
             controls.maxDistance = 2000;
-            // 最大角度
             controls.maxPolarAngle = Math.PI/2.2;
             //controls.enablePan = true;
         }
 
-        // 更新控件
         function update() {
             stats.update();
             controls.update();
@@ -234,7 +202,6 @@
         //  helper.update();
         //}
         //updateLight();
-        // 初始化
         function init() {
             initScene();
             initCamera();
@@ -245,22 +212,14 @@
             initGui();
             document.addEventListener('resize', onWindowResize, false);
         }
-        //function makeXYZGUI(gui, vector3, name, onChangeFn) {
-        //  const folder = gui.addFolder(name);
-        //  folder.add(vector3, 'x', -10, 10).onChange(onChangeFn);
-        //  folder.add(vector3, 'y', 0, 10).onChange(onChangeFn);
-        //  folder.add(vector3, 'z', -10, 10).onChange(onChangeFn);
-        //  folder.open();
-        //}
+
         function movnigSun(obj,speed){
           step += speed;
-          //obj.position.x = 100;
-          obj.position.x = 10 +(750*(Math.cos(step)));
-          obj.position.y = 10 +(750*(Math.sin(step)));
-          obj.target.updateMatrixWorld();
+          obj.position.x = 750*(Math.cos(step));
+          obj.position.y = 750*(Math.sin(step));
+          //obj.target.updateMatrixWorld();
         }
 
-        // 窗口变动触发的方法
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -268,12 +227,11 @@
         }
 
         function animate() {
-            requestAnimationFrame(animate);
-            movnigSun(directionalLight,0.02);
+            id = requestAnimationFrame(animate);
+            movnigSun(directionalLight,speed * 0.0002);
             renderer.render(scene, camera);
             update();
         }
-
         init();
         animate();
     </script>

@@ -1,0 +1,12 @@
+day and night circle
+	build test scene
+		functions of create walls and floor
+			walls are cube and floor are plane			
+	create 2 light src, ambient and directional
+		directional light facing a invisible object at position 0,0,0
+			moving in a circle when the animate updating
+	implement gui:
+		speed controll
+		pause and continue
+		controll light color and intensity
+			change the color to simulate seasonal change
