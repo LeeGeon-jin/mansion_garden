@@ -373,13 +373,13 @@
                 );
             }
             function loadTrees(){
-              creatTree(200,25,50);
-              creatTree(100,25,20);
-              creatTree(-100,25,30);
-              creatTree(50,25,100);
-              creatTree(-100,25,-200);
+              createTree(200,25,50);
+              createTree(100,25,20);
+              createTree(-100,25,30);
+              createTree(50,25,100);
+              createTree(-100,25,-200);
             }
-            function creatTree(x,y,z){
+            function createTree(x,y,z){
               var mtlLoader=new THREE.MTLLoader();
               mtlLoader.load(
                   "model/tree1/shu.mtl", function(materials){
