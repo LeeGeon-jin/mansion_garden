@@ -158,8 +158,9 @@
                 initCamera();
                 initGui();
                 loadHouse();
-                loadTree();
-                loadChar();
+                //loadTree();
+                loadTrees();
+                //loadChar();
                 initLight();
                 createFloor();
                 createWallMaterail();
@@ -339,7 +340,7 @@
                         materials.preload();
                         materials.materials["grass_ground"].transparent = true;
 	                      materials.materials["grass_ground"].opacity = 0;
-                        //materials.materials["grass_ground"].color = new THREE.Color(0x00000, 1.0)
+                        materials.materials["roof_01"].color = new THREE.Color(0, 0.5, 1)
                         var objLoader=new THREE.OBJLoader();
                         objLoader.setMaterials(materials);
                         objLoader.load(
@@ -371,120 +372,39 @@
                     }
                 );
             }
-            function loadTree(){
-                var mtlLoader=new THREE.MTLLoader();
-                //mtlLoader.setTexturePath("model/house/");
-                //mtlLoader.setPath("model/house/");
-                mtlLoader.load(
-                    "model/tree1/shu.mtl", function(materials){
-                        materials.preload();
-                        materials.materials["dashuzhi"].transparent = true;
-                        materials.materials["dashuzhi"].alphaTest = 0.7;
-                        var objLoader=new THREE.OBJLoader();
-                        objLoader.setMaterials(materials);
-                        objLoader.load(
-                            //resource url
-                            "model/tree1/shu.obj",
-                            //called when resource is loaded
-                            function(object){
-                              object.traverse( function( child ) {
-                                  if ( child instanceof THREE.Mesh ) {
-                                    //child.material = Basic_material;
-                                    child.castShadow = true;
-                                    child.receiveShadow = true;
-                                  }
-                                });
-                                object.scale.set(0.1,0.1,0.1);
-                                object.position.set(100,25,-50)
-                                scene.add(object);
-                            },
-                        );
-                    }
-                );
-
-                mtlLoader.load(
-                    "model/tree1/shu.mtl", function(materials){
-                        materials.preload();
-                        materials.materials["dashuzhi"].transparent = true;
-                        materials.materials["dashuzhi"].alphaTest = 0.7;
-
-                        var objLoader=new THREE.OBJLoader();
-                        objLoader.setMaterials(materials);
-                        objLoader.load(
-                            //resource url
-                            "model/tree1/shu.obj",
-                            //called when resource is loaded
-                            function(object){
-                              object.traverse( function( child ) {
-                                  if ( child instanceof THREE.Mesh ) {
-                                    //child.material = Basic_material;
-                                    child.castShadow = true;
-                                    child.receiveShadow = true;
-                                  }
-                                });
-                                object.scale.set(0.1,0.1,0.1);
-                                object.position.set(20,25,0)
-                                scene.add(object);
-                            },
-                        );
-                    }
-                );
-
-                mtlLoader.load(
-                    "model/tree1/shu.mtl", function(materials){
-                        materials.preload();
-                        materials.materials["dashuzhi"].transparent = true;
-                        materials.materials["dashuzhi"].alphaTest = 0.7;
-
-                        var objLoader=new THREE.OBJLoader();
-                        objLoader.setMaterials(materials);
-                        objLoader.load(
-                            //resource url
-                            "model/tree1/shu.obj",
-                            //called when resource is loaded
-                            function(object){
-                              object.traverse( function( child ) {
-                                  if ( child instanceof THREE.Mesh ) {
-                                    //child.material = Basic_material;
-                                    child.castShadow = true;
-                                    child.receiveShadow = true;
-                                  }
-                                });
-                                object.scale.set(0.1,0.1,0.1);
-                                object.position.set(-120,25,-100)
-                                scene.add(object);
-                            },
-                        );
-                    }
-                );
-
-                mtlLoader.load(
-                    "model/tree1/shu.mtl", function(materials){
-                        materials.preload();
-                        materials.materials["dashuzhi"].transparent = true;
-                        materials.materials["dashuzhi"].alphaTest = 0.7;
-
-                        var objLoader=new THREE.OBJLoader();
-                        objLoader.setMaterials(materials);
-                        objLoader.load(
-                            //resource url
-                            "model/tree1/shu.obj",
-                            //called when resource is loaded
-                            function(object){
-                              object.traverse( function( child ) {
-                                  if ( child instanceof THREE.Mesh ) {
-                                    //child.material = Basic_material;
-                                    child.castShadow = true;
-                                    child.receiveShadow = true;
-                                  }
-                                });
-                                object.scale.set(0.1,0.1,0.1);
-                                object.position.set(-50,25,-50)
-                                scene.add(object);
-                            },
-                        );
-                    }
-                );
+            function loadTrees(){
+              creatTree(200,25,50);
+              creatTree(100,25,20);
+              creatTree(-100,25,30);
+              creatTree(50,25,100);
+              creatTree(-100,25,-200);
+            }
+            function creatTree(x,y,z){
+              var mtlLoader=new THREE.MTLLoader();
+              mtlLoader.load(
+                  "model/tree1/shu.mtl", function(materials){
+                      materials.preload();
+                      materials.materials["dashuzhi"].transparent = true;
+                      materials.materials["dashuzhi"].alphaTest = 0.7;
+                      var objLoader=new THREE.OBJLoader();
+                      objLoader.setMaterials(materials);
+                      objLoader.load(
+                          "model/tree1/shu.obj",
+                          function(object){
+                            object.traverse( function( child ) {
+                                if ( child instanceof THREE.Mesh ) {
+                                  //child.material = Basic_material;
+                                  child.castShadow = true;
+                                  child.receiveShadow = true;
+                                }
+                              });
+                              object.scale.set(0.1,0.1,0.1);
+                              object.position.set(x,y,z);
+                              scene.add(object);
+                          },
+                      );
+                  }
+              );
             }
             function loadChar(){
                 var mtlLoader=new THREE.MTLLoader();
