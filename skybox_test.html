@@ -42,7 +42,7 @@
 		            wather33();
 		              },
 		            }
-            var Basic_material = new THREE.MeshBasicMaterial();
+            var Basic_material = new THREE.MeshStandardMaterial();
             init();
             animate();
             function initGui() {
@@ -159,6 +159,7 @@
                 initGui();
                 loadHouse();
                 loadTree();
+                loadChar();
                 initLight();
                 createFloor();
                 createWallMaterail();
@@ -189,7 +190,7 @@
                     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
                     floor.receiveShadow = true;
                     floor.castShadow = true;
-                    floor.position.y = -0.5;
+                    floor.position.y = 0;
                     floor.rotation.x = -Math.PI / 2;
                     floor.name = "floor";
                     scene.add(floor);
@@ -338,6 +339,7 @@
                         materials.preload();
                         materials.materials["grass_ground"].transparent = true;
 	                      materials.materials["grass_ground"].opacity = 0;
+                        //materials.materials["grass_ground"].color = new THREE.Color(0x00000, 1.0)
                         var objLoader=new THREE.OBJLoader();
                         objLoader.setMaterials(materials);
                         objLoader.load(
@@ -345,15 +347,16 @@
                             "model/house/house_10.obj",
                             //called when resource is loaded
                             function(object){
-                              //object.traverse( function( child ) {
-                              //  if ( child instanceof THREE.Mesh ) {
-                              //    child.material = Basic_material;
-                              //  }
-                                object.position.y=6;
+                              object.traverse( function( child ) {
+                                if ( child instanceof THREE.Mesh ) {
+                                  //child.material = Basic_material;
+                                  child.castShadow = true;
+                                  child.receiveShadow = true;
+                            }
+                          });
+                                object.position.y=4;
                                 object.position.z=-100;
                                 object.scale.set(25,25,25);
-                                object.castShadow = true;
-                                object.receiveShadow = true;
                                 scene.add(object);
                             },
                             //called when loading is in progresses
@@ -384,10 +387,15 @@
                             "model/tree1/shu.obj",
                             //called when resource is loaded
                             function(object){
+                              object.traverse( function( child ) {
+                                  if ( child instanceof THREE.Mesh ) {
+                                    //child.material = Basic_material;
+                                    child.castShadow = true;
+                                    child.receiveShadow = true;
+                                  }
+                                });
                                 object.scale.set(0.1,0.1,0.1);
                                 object.position.set(100,25,-50)
-                                object.castShadow = true;
-                                object.receiveShadow = true;
                                 scene.add(object);
                             },
                         );
@@ -407,10 +415,15 @@
                             "model/tree1/shu.obj",
                             //called when resource is loaded
                             function(object){
+                              object.traverse( function( child ) {
+                                  if ( child instanceof THREE.Mesh ) {
+                                    //child.material = Basic_material;
+                                    child.castShadow = true;
+                                    child.receiveShadow = true;
+                                  }
+                                });
                                 object.scale.set(0.1,0.1,0.1);
                                 object.position.set(20,25,0)
-                                object.castShadow = true;
-                                object.receiveShadow = true;
                                 scene.add(object);
                             },
                         );
@@ -430,10 +443,15 @@
                             "model/tree1/shu.obj",
                             //called when resource is loaded
                             function(object){
+                              object.traverse( function( child ) {
+                                  if ( child instanceof THREE.Mesh ) {
+                                    //child.material = Basic_material;
+                                    child.castShadow = true;
+                                    child.receiveShadow = true;
+                                  }
+                                });
                                 object.scale.set(0.1,0.1,0.1);
                                 object.position.set(-120,25,-100)
-                                object.castShadow = true;
-                                object.receiveShadow = true;
                                 scene.add(object);
                             },
                         );
@@ -453,10 +471,47 @@
                             "model/tree1/shu.obj",
                             //called when resource is loaded
                             function(object){
+                              object.traverse( function( child ) {
+                                  if ( child instanceof THREE.Mesh ) {
+                                    //child.material = Basic_material;
+                                    child.castShadow = true;
+                                    child.receiveShadow = true;
+                                  }
+                                });
                                 object.scale.set(0.1,0.1,0.1);
                                 object.position.set(-50,25,-50)
-                                object.castShadow = true;
-                                object.receiveShadow = true;
+                                scene.add(object);
+                            },
+                        );
+                    }
+                );
+            }
+            function loadChar(){
+                var mtlLoader=new THREE.MTLLoader();
+                //mtlLoader.setTexturePath("model/house/");
+                //mtlLoader.setPath("model/house/");
+                mtlLoader.load(
+                    "model/char/Doll_for_fafa.mtl", function(materials){
+                        materials.preload();
+                        materials.setMaterials('blinn7SG');
+                        //materials.materials["grass_ground"].opacity = 0;
+                        //materials.materials["grass_ground"].color = new THREE.Color(0x00000, 1.0)
+                        var objLoader=new THREE.OBJLoader();
+                        objLoader.setMaterials(materials);
+                        objLoader.load(
+                            //resource url
+                            "model/char/Doll_for_fafa.obj",
+                            //called when resource is loaded
+                            function(object){
+                              object.traverse( function( child ) {
+                                if ( child instanceof THREE.Mesh ) {
+                                  //child.material = Basic_material;
+                                  child.castShadow = true;
+                                  child.receiveShadow = true;
+                            }
+                          });
+                                object.position.set(0,0,0)
+                                object.scale.set(10,10,10);
                                 scene.add(object);
                             },
                         );
@@ -500,8 +555,8 @@
                 directionalLight.shadow.camera.bottom = -600;
                 directionalLight.shadowCameraVisible = true;
                 directionalLight.target = target;
-                directionalLight.shadow.mapSize.height = 1024;
-                directionalLight.shadow.mapSize.width = 1024;
+                directionalLight.shadow.mapSize.height = 4096;
+                directionalLight.shadow.mapSize.width = 4096;
                 scene.add( directionalLight) ;
                 var helper = new THREE.CameraHelper(directionalLight.shadow.camera);
                 scene.add(helper);
