@@ -18,51 +18,66 @@
 </head>
     <body>
         <script>
-            var camera, scene, renderer, controls, ambient, cube, wuyun11, tempMateria11;
+            var scene, renderer, controls, OBcontrols, FPcontrols, ambient, cube, wuyun11, tempMateria11, SmogGeometry11;
             var stats = initStats();
-            var controlsEnabled=true;
+            var OnFPControl=false;
+            var OBpos = new THREE.Vector3(0,800,1500);
+            var FPpos = new THREE.Vector3(0,0,1);
+            var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10000);
+            var OBcamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10000);
+            var FPcamera = new THREE.PerspectiveCamera(60,ratio,0.1,100000);
+            var OBtarget = new THREE.Object3D();
+            var FPtarget = new THREE.Object3D();
+            var ratio=window.innerWidth/window.innerHeight;
             var step = 0;
             var speed = 10;
-            var matArrayA=[];
+            var matArrayA = [];
             var moveForward=false;
             var moveBackward=false;
             var moveLeft=false;
             var moveRight=false;
-            var group = new THREE.Group();
+            var SWtrue2=false;
             var prevTime=performance.now();
             var velocity=new THREE.Vector3();
             var direction=new THREE.Vector3();
             var color=new THREE.Color();
 			      var params = {exposure: 1,};
 			      var Smogs111 = [];
-			      var SmogGeometry11;
-			      var SWtrue2 = false;
-		        var params1 = {
-		            wather3: function () {
-		            wather33();
-		              },
-		            }
-            var Basic_material = new THREE.MeshStandardMaterial();
+		        var params1 = {wather3: function () {wather33();},}
+
             init();
             animate();
+
             function initGui() {
                 gui = {
                     ambientLight:"#111111",
                     directionalLight:"#ffffff",
                     intensity:1,
-                    debug:false,
+                    frist_person_view:false,
                     time:0,
                     pause:false,
                     speed:10
                 };
                 var datGui = new dat.GUI();
-                datGui.add(gui,"time",0 ,1440).onChange(function (e) {
-                  time = e;
-                });
-                datGui.add(gui,"speed",0 ,100).onChange(function (e) {
+                var Folder1 = datGui.addFolder('Setting');
+                //datGui.add(gui,"time",0 ,1440).onChange(function (e) {
+                //  time = e;
+                //});
+                Folder1.add(gui,"speed",0 ,100).onChange(function (e) {
                   speed = e;
                 });
-                datGui.add(gui,"pause").onChange(function (e) {
+                Folder1.add(gui,"frist_person_view").onChange(function (e) {
+                  if(e){
+                    //scene.remove(controls);
+                    OnFPControl = true;
+                    setControl();
+                  }
+                  else{
+                    OnFPControl = false;
+                    setControl();
+                  }
+                });
+                Folder1.add(gui,"pause").onChange(function (e) {
                   if(e){
                     cancelAnimationFrame(id);
                   }
@@ -70,95 +85,39 @@
                     requestAnimationFrame(animate);
                   }
                 });
-                datGui.addColor(gui,"ambientLight").onChange(function (e) {
+                Folder1.addColor(gui,"ambientLight").onChange(function (e) {
                   ambientLight.color = new THREE.Color(e);
                 });
-                datGui.addColor(gui,"directionalLight").onChange(function (e) {
+                Folder1.addColor(gui,"directionalLight").onChange(function (e) {
                   directionalLight.color = new THREE.Color(e);
                 });
-                datGui.add(gui,"intensity",0,5).onChange(function (e) {
+                Folder1.add(gui,"intensity",0,5).onChange(function (e) {
                   directionalLight.intensity = e;
                 });
+                var Folder2 = datGui.addFolder('Season');
+                //generationFolder111.close();
+                //var genBtn333 = generationFolder111.add(params1, 'wather3');
+                //genBtn333.name("winter");
               }
             function init(){
-                var ratio=window.innerWidth/window.innerHeight;
-                //camera=new THREE.PerspectiveCamera(60,ratio,0.1,100000);
-                var Pos=new THREE.Vector3(0,0,0);
-                //camera.position.set(Pos.x,Pos.y,Pos.z);
-                var Dir=new THREE.Vector3(0,0,1);
-                //camera.lookAt(Dir.x,Dir.y,Dir.z);
-
                 scene=new THREE.Scene();
                 scene.fog = new THREE.Fog( scene.background, 3000, 5000 );
-                //controls=new THREE.PointerLockControls(camera);
-                //controls.enabled=true;
-                //scene.add(controls.getObject());
-
-                //var onKeyDown=function(event){
-                //    switch(event.keyCode){
-                //        case 38: //up
-                //        case 87: //w
-                //            moveForward=true;
-                //            break;
-
-                //        case 37: //left
-                //        case 65: //a
-                //            moveLeft=true;
-                //            break;
-
-                //        case 40: //down
-                //        case 83: //s
-                //            moveBackward=true;
-                //            break;
-
-                //        case 39: //right
-                //        case 68: //d
-                //            moveRight=true;
-                //            break;
-                //    }
-                //};
-
-                //var onKeyUp=function(event){
-                //    switch(event.keyCode){
-                //        case 38: //up
-                //        case 87: //w
-                //            moveForward=false;
-                //            break;
-
-                //        case 37: //left
-                //        case 65: //a
-                //            moveLeft=false;
-                //            break;
-
-                //        case 40: //down
-                //        case 83: //s
-                //            moveBackward=false;
-                //            break;
-
-                //        case 39: //right
-                //        case 68: //d
-                //            moveRight=false;
-                //            break;
-                //    }
-                //};
-
-                //document.addEventListener('keydown',onKeyDown,false);
-                //document.addEventListener('keyup',onKeyUp,false);
-
                 //loadSkyBox();
-
                 renderer = new THREE.WebGLRenderer({antialias:true});
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.setClearColor(0x4682B4,1);
                 renderer.shadowMapEnabled = true;
                 renderer.shadowMapSoft = true;
-
                 document.body.appendChild( renderer.domElement );
-                initCamera();
+                //initCamera();
+                initOBCamera();
+                initFPCamera();
+                initOBControls();
+                initFPControls();
+                setControl();
                 initGui();
                 loadHouse();
-                //loadTree();
                 loadTrees();
                 //loadChar();
                 initLight();
@@ -168,18 +127,18 @@
                 createCubeWall(10, 50, 1000, 0, matArrayA, 500, 25, 0, "Wall");
                 createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, -500, "Wall");
                 createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, 500, "Wall");
-                initControls();
+
 
                 window.addEventListener('resize',onWindowResize,false);
 
-                gui2 = new dat.GUI( { width: 350 } );
-                gui2.add( params, 'exposure', 0, 1 );
-                gui2.domElement.style = 'position:absolute;top:20px;left:0px;height: 350px';
+                //gui2 = new dat.GUI( { width: 350 } );
+                //gui2.add( params, 'exposure', 0, 1 );
+                //gui2.domElement.style = 'position:absolute;top:20px;left:0px;height: 350px';
 
-                var generationFolder111 = gui2.addFolder('Wather');
-                generationFolder111.close();
-                var genBtn333 = generationFolder111.add(params1, 'wather3');
-                genBtn333.name("winter");
+                //var generationFolder111 = gui2.addFolder('Wather');
+                //generationFolder111.close();
+                //var genBtn333 = generationFolder111.add(params1, 'wather3');
+                //genBtn333.name("winter");
             }
             function createFloor(){
                 var loader = new THREE.TextureLoader();
@@ -210,40 +169,59 @@
             function onWindowResize(){
                 camera.aspect=window.innerWidth/window.innerHeight;
                 camera.updateProjectionMatrix();
+                //OBcamera.aspect=window.innerWidth/window.innerHeight;
+                //OBcamera.updateProjectionMatrix();
+                //FPcamera.aspect=window.innerWidth/window.innerHeight;
+                //FPcamera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth,window.innerHeight);
             }
             function animate(){
                 //requestAnimationFrame(animate);
                 id = requestAnimationFrame(animate);
                 movnigSun(directionalLight,speed * 0.0002);
-                if(controlsEnabled==true){
+                if(OnFPControl){
                     var time=performance.now();
                     var delta=(time-prevTime)/1000;
-
                     velocity.x-=velocity.x*10.0*delta;
                     velocity.z-=velocity.z*10.0*delta;
-
                     direction.z=Number(moveForward)-Number(moveBackward);
                     direction.x=Number(moveLeft)-Number(moveRight);
                     direction.normalize();
-
                     if(moveForward || moveBackward) velocity.z-=direction.z*400.0*delta;
                     if(moveLeft || moveRight) velocity.x-=direction.x*400.0*delta;
-
-                    //controls.getObject().translateX(velocity.x*delta);
-                    //controls.getObject().translateZ(velocity.z*delta);
-
+                    FPcontrols.getObject().translateX(velocity.x*delta);
+                    FPcontrols.getObject().translateZ(velocity.z*delta);
                     prevTime=time;
-                    stats.update();
+                    console.debug(direction);
                 }
                 if(cube){
                     for (var i = 0; i < cube.material.length; i++) {
                         cube.material[i].color.setRGB(params.exposure,params.exposure,params.exposure);
                     }
-                    //ambientLight.intensity = params.exposure
+                    ambientLight.intensity = params.exposure
                 }
+                stats.update();
+                renderer.render(scene,FPcamera);
                 renderer.render(scene,camera);
+            }
+            function setControl(){
+              if(!OnFPControl){
+                OBcamera.enabled = true;
+                FPcamera.enabled = false;
+                camera = OBcamera;
+                OBcontrols.enabled=true;
+                FPcontrols.enabled=false;
+                controls = OBcontrols;
+              }else{
+                //initFPControls();
+                OBcamera.enabled = false;
+                FPcamera.enabled = true;
+                camera = FPcamera;
+                OBcontrols.enabled=false;
+                FPcontrols.enabled=true;
+                controls = FPcontrols;
               }
+            }
             function ItRains(){
                 requestAnimationFrame( ItRains );
                 for( var i=0; i<Smogs111.length; i++ ){
@@ -258,19 +236,80 @@
               }
             }
             function initCamera() {
-                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
                 //camera.shadowCameraVisible = true;
-                camera.position.set(0, 800, 1500);
-                camera.lookAt(new THREE.Vector3(0, 0, 0));
+                camera.position.set(OBpos.x,OBpos.y,OBpos.z);
+                camera.target = OBtarget;
+                //camera.enabled = true;
             }
-            function initControls() {
-                controls = new THREE.OrbitControls( camera, renderer.domElement );
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.5;
-                controls.minDistance = 100;
-                controls.maxDistance = 2000;
-                controls.maxPolarAngle = Math.PI/2.2;
-                //controls.enablePan = true;
+            function initOBCamera() {
+                //camera.shadowCameraVisible = true;
+                OBcamera.position.set(OBpos.x,OBpos.y,OBpos.z);
+                OBtarget.position.set(new THREE.Vector3(0,0,0));
+                OBcamera.target = OBtarget;
+                OBcamera.enabled = false;
+            }
+            function initFPCamera() {
+                var Pos=new THREE.Vector3(0,0,0);
+                FPcamera.position.set(FPpos.x,FPpos.y,FPpos.z);
+                FPtarget.position.set(new THREE.Vector3(0,0,1));
+                FPcamera.lookAt(FPtarget);
+                FPcamera.enabled = false;
+            }
+            function initOBControls() {
+                OBcontrols = new THREE.OrbitControls( OBcamera, renderer.domElement );
+                OBcontrols.enabled=false;
+                OBcontrols.enableDamping = true;
+                OBcontrols.dampingFactor = 0.5;
+                OBcontrols.minDistance = 100;
+                OBcontrols.maxDistance = 2000;
+                OBcontrols.maxPolarAngle = Math.PI/2.2;
+            }
+            function initFPControls(){
+                FPcontrols=new THREE.PointerLockControls(FPcamera, renderer.domElement);
+                FPcontrols.enabled=false;
+                scene.add(FPcontrols.getObject());
+                var onKeyDown=function(event){
+                    switch(event.keyCode){
+                      case 38: //up
+                      case 87: //w
+                          moveForward=true;
+                          break;
+                      case 37: //left
+                      case 65: //a
+                          moveLeft=true;
+                          break;
+                      case 40: //down
+                      case 83: //s
+                          moveBackward=true;
+                          break;
+                      case 39: //right
+                      case 68: //d
+                          moveRight=true;
+                          break;
+                          }
+                      };
+                var onKeyUp=function(event){
+                    switch(event.keyCode){
+                      case 38: //up
+                      case 87: //w
+                          moveForward=false;
+                          break;
+                      case 37: //left
+                      case 65: //a
+                          moveLeft=false;
+                          break;
+                      case 40: //down
+                      case 83: //s
+                          moveBackward=false;
+                          break;
+                      case 39: //right
+                      case 68: //d
+                          moveRight=false;
+                          break;
+                        }
+                      };
+                document.addEventListener('keydown',onKeyDown,false);
+                document.addEventListener('keyup',onKeyUp,false);
             }
             function wather33(){
               if( SWtrue2 == false ){
@@ -372,13 +411,6 @@
                     }
                 );
             }
-            function loadTrees(){
-              createTree(200,25,50);
-              createTree(100,25,20);
-              createTree(-100,25,30);
-              createTree(50,25,100);
-              createTree(-100,25,-200);
-            }
             function createTree(x,y,z){
               var mtlLoader=new THREE.MTLLoader();
               mtlLoader.load(
@@ -406,6 +438,13 @@
                   }
               );
             }
+            function loadTrees(){
+              createTree(200,25,50);
+              createTree(100,25,20);
+              createTree(-100,25,30);
+              createTree(50,25,100);
+              createTree(-100,25,-200);
+            }
             function loadChar(){
                 var mtlLoader=new THREE.MTLLoader();
                 //mtlLoader.setTexturePath("model/house/");
@@ -431,12 +470,21 @@
                             }
                           });
                                 object.position.set(0,0,0)
-                                object.scale.set(10,10,10);
+                                object.scale.set(1,1,1);
                                 scene.add(object);
                             },
                         );
                     }
                 );
+            }
+            function createWallMaterail(){
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //前  0xafc0ca :灰色
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0x9cb2d1}));  //后  0x9cb2d1：淡紫
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //上  0xd6e4ec： 偏白色
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //下
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //左   0xafc0ca :灰色
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //右
+
             }
             function createCubeWall(width, height, depth, angle, material, x, y, z, name){
                 var cubeGeometry = new THREE.BoxGeometry(width, height, depth );
@@ -449,15 +497,6 @@
                 cube.rotation.y += angle*Math.PI;
                 cube.name = name;
                 scene.add(cube);
-            }
-            function createWallMaterail(){
-                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //前  0xafc0ca :灰色
-                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0x9cb2d1}));  //后  0x9cb2d1：淡紫
-                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //上  0xd6e4ec： 偏白色
-                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //下
-                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //左   0xafc0ca :灰色
-                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //右
-
             }
             function initLight() {
                 directionalLight = new THREE.DirectionalLight( 0xffffff, 0.9 );//模拟远处类似太阳的光源
