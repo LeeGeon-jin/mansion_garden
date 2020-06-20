@@ -18,7 +18,8 @@
 </head>
     <body>
         <script>
-            var scene, renderer, controls, OBcontrols, FPcontrols, ambient, cube, wuyun11, tempMateria11, SmogGeometry11;
+            var scene, renderer, controls, OBcontrols, FPcontrols, ambient, cube;
+            var currentSeason = 'spring';
             var stats = initStats();
             var OnFPControl=false;
             var OBpos = new THREE.Vector3(0,800,1500);
@@ -36,14 +37,13 @@
             var moveBackward=false;
             var moveLeft=false;
             var moveRight=false;
-            var SWtrue2=false;
+            var SRtrue=false;
             var prevTime=performance.now();
             var velocity=new THREE.Vector3();
             var direction=new THREE.Vector3();
             var color=new THREE.Color();
-			      var params = {exposure: 1,};
-			      var Smogs111 = [];
-		        var params1 = {wather3: function () {wather33();},}
+			      var snowflakes = [];
+            var rainDrops = [];
 
             init();
             animate();
@@ -56,7 +56,13 @@
                     frist_person_view:false,
                     time:0,
                     pause:false,
-                    speed:10
+                    speed:10,
+                    weather: false,
+                    spring: function () {season('spring');},
+                    summer: function () {season('summer');},
+                    autumn: function () {season('autumn');},
+                    winter: function () {season('winter');}
+
                 };
                 var datGui = new dat.GUI();
                 var Folder1 = datGui.addFolder('Setting');
@@ -95,9 +101,21 @@
                   directionalLight.intensity = e;
                 });
                 var Folder2 = datGui.addFolder('Season');
-                //generationFolder111.close();
-                //var genBtn333 = generationFolder111.add(params1, 'wather3');
-                //genBtn333.name("winter");
+                var Spring = Folder2.add(gui,'spring');
+                var Summer = Folder2.add(gui,'summer');
+                var Autumn = Folder2.add(gui,'autumn');
+                var Winter = Folder2.add(gui,'winter');
+                var Folder3 = datGui.addFolder('Weather');
+                var Rain_Snow = Folder3.add(gui, 'weather').onChange(function (e){
+                  if(e){
+                    weather();
+                    //console.log(currentSeason);
+                  }
+                  else{
+                    stopWeather();
+                  }
+                }) ;
+                Rain_Snow.name("Rain/Snow");
               }
             function init(){
                 scene=new THREE.Scene();
@@ -110,35 +128,29 @@
                 renderer.shadowMapEnabled = true;
                 renderer.shadowMapSoft = true;
                 document.body.appendChild( renderer.domElement );
+
                 //initCamera();
                 initOBCamera();
                 initFPCamera();
                 initOBControls();
                 initFPControls();
                 setControl();
-                initGui();
                 loadHouse();
                 loadTrees();
+                intiSnow();
+                intiRain();
+                //ItSnows();
+                //ItRains();
                 //loadChar();
                 initLight();
+                initGui();
                 createFloor();
                 createWallMaterail();
                 createCubeWall(10, 50, 1000, 0, matArrayA, -500, 25, 0, "Wall");
                 createCubeWall(10, 50, 1000, 0, matArrayA, 500, 25, 0, "Wall");
                 createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, -500, "Wall");
                 createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, 500, "Wall");
-
-
                 window.addEventListener('resize',onWindowResize,false);
-
-                //gui2 = new dat.GUI( { width: 350 } );
-                //gui2.add( params, 'exposure', 0, 1 );
-                //gui2.domElement.style = 'position:absolute;top:20px;left:0px;height: 350px';
-
-                //var generationFolder111 = gui2.addFolder('Wather');
-                //generationFolder111.close();
-                //var genBtn333 = generationFolder111.add(params1, 'wather3');
-                //genBtn333.name("winter");
             }
             function createFloor(){
                 var loader = new THREE.TextureLoader();
@@ -201,7 +213,6 @@
                     ambientLight.intensity = params.exposure
                 }
                 stats.update();
-                renderer.render(scene,FPcamera);
                 renderer.render(scene,camera);
             }
             function setControl(){
@@ -222,17 +233,76 @@
                 controls = FPcontrols;
               }
             }
-            function ItRains(){
-                requestAnimationFrame( ItRains );
-                for( var i=0; i<Smogs111.length; i++ ){
-							  var ii = i+1;
+            function intiSnow(){
+              var snowflakeGeometry = new THREE.PlaneBufferGeometry( 8, 8 );
+              var snowflakeTexture = new THREE.TextureLoader().load( "img/snowflake1.png" );
+              var snowflakeMateria = new THREE.MeshBasicMaterial({map: snowflakeTexture, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+              for ( var i = 0; i < 50; i++ ) {
+                for ( var j = 0; j < 50; j++ ) {
+                  snowflake = new THREE.Mesh( snowflakeGeometry, snowflakeMateria );
+                  snowflake.position.set( -50 + Math.random()*600 * Math.sin( i * 0.4 ),100,-50 + Math.random()*600 * Math.cos( j * 0.25 ));
+                  snowflake.scale.set(0.1,0.1,0.1);
+                  snowflake.visible=false;
+                  scene.add( snowflake );
+                  snowflakes.push( snowflake );
+                }
+              }
+            }
+            function ItSnows(){
+              snowing = requestAnimationFrame( ItSnows );
+              for( var i=0; i<snowflakes.length; i++ ){
+                var ii = i+1;
                 if( ii > 3 ){ ii = i/4; }
                 if( ii < 10 ){ ii = 10*i; }
-                Smogs111[i].position.y -= ii*0.0002;
-                Smogs111[i].lookAt(camera.position);
-                if( Smogs111[i].position.y < -40 ){
-                  Smogs111[i].position.y = 140;
+                snowflakes[i].position.y -= ii*0.0002*speed;
+                snowflakes[i].lookAt(camera.position);
+                if( snowflakes[i].position.y < -10 ){
+                  snowflakes[i].position.y = 140;
                 }
+              }
+            }
+            function intiRain(){
+              var rainDropGeometry = new THREE.PlaneBufferGeometry( 6, 6 );
+              var rainDropTexture = new THREE.TextureLoader().load( "img/RainDrop.png" );
+              var rainDropMateria = new THREE.MeshBasicMaterial({map: rainDropTexture, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+              for ( var i = 0; i < 50; i++ ) {
+                for ( var j = 0; j < 50; j++ ) {
+                  rainDrop = new THREE.Mesh( rainDropGeometry, rainDropMateria );
+                  rainDrop.position.set( -50 + Math.random()*600 * Math.sin( i * 0.4 ),70,-50 + Math.random()*600 * Math.cos( j * 0.25 ));
+                  rainDrop.scale.set(0.2,0.2,0.2);
+                  rainDrop.visible=false;
+                  scene.add( rainDrop );
+                  rainDrops.push( rainDrop );
+                }
+              }
+            }
+            function ItRains(){
+              raining = requestAnimationFrame( ItRains );
+              for( var i=0; i<rainDrops.length; i++ ){
+                var ii = i+1;
+                if( ii > 3 ){ ii = i/2; }
+                if( ii < 10 ){ ii = 10*i; }
+                rainDrops[i].position.y -= ii*0.001*speed;
+                rainDrops[i].lookAt(camera.position);
+                if( rainDrops[i].position.y < -10 ){
+                  rainDrops[i].position.y = 140;
+                }
+              }
+            }
+            function season(Season){
+              currentSeason = Season;
+              //stopWeather();
+              if (Season=='spring'){
+
+              }
+              if (Season=='summer'){
+
+              }
+              if (Season=='autumn'){
+
+              }
+              if (Season=='winter'){
+
               }
             }
             function initCamera() {
@@ -311,17 +381,32 @@
                 document.addEventListener('keydown',onKeyDown,false);
                 document.addEventListener('keyup',onKeyUp,false);
             }
-            function wather33(){
-              if( SWtrue2 == false ){
-			    		for( var i=0; i<Smogs111.length; i++ ){
-			    			Smogs111[i].visible = true;
-			    		}
-								SWtrue2 = true;
-              }else{
-			    		for( var i=0; i<Smogs111.length; i++ ){
-			    			Smogs111[i].visible = false;
-			    		}
-								SWtrue2 = false;
+            function weather(){
+                if( currentSeason == 'winter' ){
+                  ItSnows();
+                  for (var i = 0; i < snowflakes.length; i++){
+                    snowflakes[i].visible = true;
+                  }
+                }
+                else{
+                  ItRains();
+                  for (var i = 0; i < rainDrops.length; i++){
+                    rainDrops[i].visible = true;
+                  }
+                }
+            }
+            function stopWeather(){
+              if( snowflakes[0].visible == true ){
+                cancelAnimationFrame(snowing);
+                for (var i = 0; i < snowflakes.length; i++){
+                  snowflakes[i].visible = false;
+                }
+              }
+              if(rainDrops[0].visible == true){
+                cancelAnimationFrame(raining);
+                for (var i = 0; i < rainDrops.length; i++){
+                  rainDrops[i].visible = false;
+                }
               }
             }
             function loadSkyBox(){
@@ -349,26 +434,9 @@
                         new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}), //front
                         new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide})  //back
                     ];
-
                     cube=new THREE.Mesh(geometry,cubeMaterials);
                     scene.add(cube);
-
                 }
-
-                SmogGeometry11 = new THREE.PlaneBufferGeometry( 5, 5 );
-                wuyun11 = new THREE.TextureLoader().load( "img/snowflake1.png" );
-                tempMateria11 = new THREE.MeshBasicMaterial({map: wuyun11, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
-                for ( var i = 0; i < 200; i++ ) {
-                  for ( var j = 0; j < 200; j++ ) {
-                    Smogs11 = new THREE.Mesh( SmogGeometry11, tempMateria11 );
-						    	  Smogs11.position.set( -50 + Math.random()*1080 * Math.sin( i * 0.4 ),70,-50 + Math.random()*1080 * Math.cos( j * 0.25 ));
-									  Smogs11.scale.set(0.1,0.1,0.1);
-									  Smogs11.visible=false;
-						        scene.add( Smogs11 );
-						     	  Smogs111.push(Smogs11);
-                  }
-                }
-                ItRains();
               }
             function loadHouse(){
                 var mtlLoader=new THREE.MTLLoader();
@@ -514,8 +582,8 @@
                 directionalLight.shadow.camera.bottom = -600;
                 directionalLight.shadowCameraVisible = true;
                 directionalLight.target = target;
-                directionalLight.shadow.mapSize.height = 4096;
-                directionalLight.shadow.mapSize.width = 4096;
+                directionalLight.shadow.mapSize.height = 2048;
+                directionalLight.shadow.mapSize.width = 2048;
                 scene.add( directionalLight) ;
                 var helper = new THREE.CameraHelper(directionalLight.shadow.camera);
                 scene.add(helper);
