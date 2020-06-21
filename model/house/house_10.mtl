@@ -12,6 +12,8 @@ newmtl plate_grey
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+	map_Ka textures\1.jpg
+	map_Kd textures\1.jpg
 
 newmtl metal_grey
 	Ns 0.000000
@@ -24,6 +26,8 @@ newmtl metal_grey
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\2.jpg
+	map_Kd textures\2.jpg
 
 newmtl wood_brown
 	Ns 0.000000
@@ -36,6 +40,8 @@ newmtl wood_brown
 	Kd 0.501360 0.252240 0.197920
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\3.jpg
+	map_Kd textures\3.jpg
 
 newmtl window_glass_old
 	Ns 0.000000
@@ -48,6 +54,8 @@ newmtl window_glass_old
 	Kd 0.124080 0.377120 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\4.jpg
+	map_Kd textures\4.jpg
 
 newmtl foundation_grey_brick
 	Ns 0.000000
@@ -60,6 +68,8 @@ newmtl foundation_grey_brick
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\5.jpg
+	map_Kd textures\5.jpg
 
 newmtl metal_blue
 	Ns 0.000000
@@ -72,6 +82,8 @@ newmtl metal_blue
 	Kd 0.067520 0.104080 0.152960
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\6.jpg
+	map_Kd textures\6.jpg
 
 newmtl glass_door
 	Ns 0.000000
@@ -84,6 +96,8 @@ newmtl glass_door
 	Kd 0.111760 0.172000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\4.jpg
+	map_Kd textures\4.jpg
 
 newmtl plaster_white
 	Ns 0.000000
@@ -96,6 +110,8 @@ newmtl plaster_white
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\7.jpg
+	map_Kd textures\7.jpg
 
 newmtl brick_hexagonal
 	Ns 0.000000
@@ -108,6 +124,8 @@ newmtl brick_hexagonal
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\8.jpg
+	map_Kd textures\8.jpg
 
 newmtl curb
 	Ns 0.000000
@@ -120,6 +138,8 @@ newmtl curb
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\9.jpg
+	map_Kd textures\9.jpg
 
 newmtl parapet
 	Ns 0.000000
@@ -132,6 +152,8 @@ newmtl parapet
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\10.jpg
+	map_Kd textures\10.jpg
 
 newmtl window_glass
 	Ns 0.000000
@@ -144,6 +166,8 @@ newmtl window_glass
 	Kd 0.124080 0.377120 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\4.jpg
+	map_Kd textures\4.jpg
 
 newmtl ground
 	Ns 0.000000
@@ -156,6 +180,8 @@ newmtl ground
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\11.jpg
+	map_Kd textures\11.jpg
 
 newmtl wood_balls_brown
 	Ns 0.000000
@@ -168,6 +194,8 @@ newmtl wood_balls_brown
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+		map_Ka textures\12.jpg
+	map_Kd textures\12.jpg
 
 newmtl roof_01
 	Ns 0.000000
@@ -180,6 +208,7 @@ newmtl roof_01
 	Kd 0.640000 0.640000 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+	
 
 newmtl grass_ground
 	Ns 0.000000
