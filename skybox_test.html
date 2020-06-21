@@ -18,7 +18,7 @@
 </head>
     <body>
         <script>
-            var scene, renderer, controls, OBcontrols, FPcontrols, ambient, cube;
+            var scene, renderer, controls, OBcontrols, FPcontrols, directionalLight, ambientLight,cube;
             var currentSeason = 'spring';
             var stats = initStats();
             var OnFPControl=false;
@@ -44,6 +44,11 @@
             var color=new THREE.Color();
 			      var snowflakes = [];
             var rainDrops = [];
+
+            //the following variables are for moving objects
+            var isSelected=false;
+            var objects=[];
+            var selectedObject;
 
             init();
             animate();
@@ -137,6 +142,8 @@
                 setControl();
                 loadHouse();
                 loadTrees();
+                loadFountain();
+                loadFences();
                 intiSnow();
                 intiRain();
                 //ItSnows();
@@ -145,11 +152,11 @@
                 initLight();
                 initGui();
                 createFloor();
-                createWallMaterail();
-                createCubeWall(10, 50, 1000, 0, matArrayA, -500, 25, 0, "Wall");
-                createCubeWall(10, 50, 1000, 0, matArrayA, 500, 25, 0, "Wall");
-                createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, -500, "Wall");
-                createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, 500, "Wall");
+                 createWallMaterail();
+                 createCubeWall(5, 30, 1000, 0, matArrayA, -500, 15, 0, "Wall");
+                 createCubeWall(5, 30, 1000, 0, matArrayA, 500, 15, 0, "Wall");
+                 createCubeWall(5, 30, 1000, 0.5, matArrayA, 0, 15, -500, "Wall");
+                 createCubeWall(5, 30, 1000, 0.5, matArrayA, 0, 15, 500, "Wall");
                 window.addEventListener('resize',onWindowResize,false);
             }
             function createFloor(){
@@ -291,18 +298,26 @@
             }
             function season(Season){
               currentSeason = Season;
-              //stopWeather();
               if (Season=='spring'){
-
+                directionalLight.color.set(0xFFFFFF);
+                directionalLight.intensity = 1;
+                //ambientLight.color.set(0x9AFF9A);
               }
               if (Season=='summer'){
-
+                directionalLight.color.set(0xFFFFFF);
+                directionalLight.intensity = 2;
+                //ambientLight.color.set(0xFFFFFF);
               }
               if (Season=='autumn'){
-
+                directionalLight.color.set(0xFFD700);
+                directionalLight.intensity = 1;
+                //ambientLight.color.set(0xFFD700);
+                FFD700
               }
               if (Season=='winter'){
-
+                directionalLight.color.set(0xFFFAFA);
+                directionalLight.intensity = 100;
+                //ambientLight.color.set(0xFFFAFA,1);
               }
             }
             function initCamera() {
@@ -501,6 +516,7 @@
                               object.scale.set(0.1,0.1,0.1);
                               object.position.set(x,y,z);
                               scene.add(object);
+                              objects.push(object);
                           },
                       );
                   }
@@ -513,46 +529,79 @@
               createTree(50,25,100);
               createTree(-100,25,-200);
             }
-            function loadChar(){
-                var mtlLoader=new THREE.MTLLoader();
-                //mtlLoader.setTexturePath("model/house/");
-                //mtlLoader.setPath("model/house/");
-                mtlLoader.load(
-                    "model/char/Doll_for_fafa.mtl", function(materials){
-                        materials.preload();
-                        materials.setMaterials('blinn7SG');
-                        //materials.materials["grass_ground"].opacity = 0;
-                        //materials.materials["grass_ground"].color = new THREE.Color(0x00000, 1.0)
-                        var objLoader=new THREE.OBJLoader();
-                        objLoader.setMaterials(materials);
-                        objLoader.load(
-                            //resource url
-                            "model/char/Doll_for_fafa.obj",
-                            //called when resource is loaded
-                            function(object){
-                              object.traverse( function( child ) {
-                                if ( child instanceof THREE.Mesh ) {
-                                  //child.material = Basic_material;
-                                  child.castShadow = true;
-                                  child.receiveShadow = true;
-                            }
-                          });
-                                object.position.set(0,0,0)
-                                object.scale.set(1,1,1);
-                                scene.add(object);
-                            },
-                        );
+            function loadFountain(){
+              var mtlLoader=new THREE.MTLLoader();
+              mtlLoader.load(
+                "model/fountain/fountain.mtl",function(materials){
+                  materials.preload();
+                  var objLoader=new THREE.OBJLoader();
+                  objLoader.setMaterials(materials);
+                  objLoader.load(
+                    "model/fountain/fountain.obj",function(object){
+                      object.scale.set(10,10,10);
+                      scene.add(object);
                     }
-                );
+                  )
+                }
+              )
+            }
+            function loadFences(){
+              //左侧栅栏
+              createFence(-300,0,-360,0);
+              createFence(-300,0,-270,0);
+              createFence(-300,0,-180,0);
+              createFence(-300,0,-90,0);
+              createFence(-300,0,0,0);
+              createFence(-300,0,90,0);
+              //右侧栅栏
+              createFence(300,0,-360,0);
+              createFence(300,0,-270,0);
+              createFence(300,0,-180,0);
+              createFence(300,0,-90,0);
+              createFence(300,0,0,0);
+              createFence(300,0,90,0);
+              //前面栅栏
+              createFence(-311.5,0,206,Math.PI/2);
+              createFence(-221.5,0,206,Math.PI/2);
+              // createFence(0,0,206,Math.PI/2);
+              createFence(100,0,206,Math.PI/2);
+              createFence(189.75,0,206,Math.PI/2);
+              // createFence(0,0,180,Math.PI/2);
+
+              //后面栅栏
+              createFence(-311.5,0,-340,Math.PI/2);
+              createFence(-221.5,0,-340,Math.PI/2);
+              createFence(100,0,-340,Math.PI/2);
+              createFence(189.75,0,-340,Math.PI/2);
+            }
+            function createFence(positionX,positionY,positionZ,rotationAngle){
+                var mtlLoader=new THREE.MTLLoader();
+                mtlLoader.load(
+                  "model/white-fence/Fence_White.mtl",function(materials){
+                    materials.preload();
+                    var objLoader=new THREE.OBJLoader();
+                    objLoader.setMaterials(materials);
+                    objLoader.load(
+                      "model/white-fence/Fence_White.obj",function(object){
+                        object.scale.set(1,1,1);
+                        object.rotation.y=rotationAngle;
+                        object.position.set(positionX,positionY,positionZ);
+                        scene.add(object);
+                      }
+                    )
+                  }
+                )
             }
             function createWallMaterail(){
+                  //const loader=new THREE.TextureLoader();
+                  //const tex=loader.load("img/sky6.jpg");
+
                   matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //前  0xafc0ca :灰色
                   matArrayA.push(new THREE.MeshPhongMaterial({color: 0x9cb2d1}));  //后  0x9cb2d1：淡紫
                   matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //上  0xd6e4ec： 偏白色
                   matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //下
                   matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //左   0xafc0ca :灰色
                   matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //右
-
             }
             function createCubeWall(width, height, depth, angle, material, x, y, z, name){
                 var cubeGeometry = new THREE.BoxGeometry(width, height, depth );
@@ -573,7 +622,7 @@
                 scene.add(target);
                 directionalLight.position.set( 500, 500, 0);
                 directionalLight.castShadow = true;
-                directionalLight.color.setHSL( 0.1, 1, 0.95 );
+                //directionalLight.color.setHSL( 0.1, 1, 0.95 );
                 directionalLight.shadow.camera.near = 10;
                 directionalLight.shadow.camera.far = 1500;
                 directionalLight.shadow.camera.left = -500;
@@ -587,7 +636,7 @@
                 scene.add( directionalLight) ;
                 var helper = new THREE.CameraHelper(directionalLight.shadow.camera);
                 scene.add(helper);
-                ambientLight = new THREE.AmbientLight( 0xFFFFFF, 0.1 ); //AmbientLight,影响整个场景的光源
+                ambientLight = new THREE.AmbientLight( 0xFFFFFF, 0.2 ); //AmbientLight,影响整个场景的光源
                 ambientLight.position.set(0,0,0);
                 scene.add( ambientLight );
             }
@@ -597,6 +646,90 @@
               obj.position.y = 750*(Math.sin(step));
               //obj.target.updateMatrixWorld();
             }
+
+            document.addEventListener('mousedown',onDocumentMouseDown);
+
+            function onDocumentMouseDown(e){
+                e.preventDefault();
+
+                var vector=new THREE.Vector3((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,0.5).unproject(camera);
+                var raycaster=new THREE.Raycaster(camera.position,vector.sub(camera.position).normalize());
+
+                var intersects=raycaster.intersectObjects(objects,true);
+                console.log('imtersrcts'+intersects);
+                if(intersects.length>0)
+                {
+                    for(i=0;i<objects.length;i++)
+                    {
+                      console.log (objects[i]);
+                    }
+                    if(isSelected==false)
+                    {
+                        console.log(isSelected);
+                        selectedObject=intersects[0].object;
+                        //if(objects.includes(selectedObject))
+                        //{
+                          //selectedObject.material.transparent=true;
+                          //selectedObject.material.opacity=0.5;
+                          //selectedObject.material.wireframe=true;
+                          selectedObject.position.y+=100;
+                          console.log(selectedObject);
+                          console.log("The object's position: ");
+                          console.log(selectedObject.position);
+                          console.log("The mouse pointer's position: ");
+                          console.log(vector);
+                          isSelected=true;
+                        //}
+
+                    }
+                    else if(isSelected==true)
+                    {
+                      selectedObject.position.y=25;
+                        isSelected=false;
+                    }
+                }
+              }
+
+              document.addEventListener("keydown",onDocumentKeyDown);
+
+              function onDocumentKeyDown(e)
+              {
+                if(isSelected==true)
+                {
+                  switch(e.keyCode)
+                  {
+                    case 38: //up
+                      selectedObject.position.z-=100;
+                      break;
+
+                    case 37: //left
+                      selectedObject.position.x-=100;
+                      break;
+
+                    case 40: //down
+                      selectedObject.position.z+=100;
+                      break;
+
+                    case 39: //right
+                      selectedObject.position.x+=100;
+                      break;
+
+                    case 13: //enter
+                      selectedObject.position.y=25;
+                      isSelected=false;
+                      break;
+                  }
+                }
+                else if(isSelected==false)
+                {
+                  if(e.keyCode==32)
+                  {
+                    var randomPositionValue=Math.floor(Math.random()*201)-100;
+                    createTree(randomPositionValue,25,randomPositionValue);
+                  }
+                }
+              }
+
         </script>
     </body>
 </html>

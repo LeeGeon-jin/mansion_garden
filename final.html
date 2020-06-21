@@ -1,0 +1,602 @@
+<html>
+<head includeDefault="true">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+      <title>test scene</title>
+      <style>
+          body {
+              margin: 0;
+              overflow: hidden;
+          }
+      </style>
+      <script src="js/three.js"></script>
+      <script src="js/PointerLockControls.js"></script>
+      <script src="js/OBJLoader.js"></script>
+      <script src="js/MTLLoader.js"></script>
+      <script src="js/dat.gui.min.js"></script>
+      <script src="js/stats.min.js"></script>
+      <script src="js/OrbitControls.js"></script>
+</head>
+    <body>
+        <script>
+            var scene, renderer, controls, OBcontrols, FPcontrols, ambient, cube;
+            var currentSeason = 'spring';
+            var stats = initStats();
+            var OnFPControl=false;
+            var OBpos = new THREE.Vector3(0,800,1500);
+            var FPpos = new THREE.Vector3(0,0,1);
+            var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10000);
+            var OBcamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10000);
+            var FPcamera = new THREE.PerspectiveCamera(60,ratio,0.1,100000);
+            var OBtarget = new THREE.Object3D();
+            var FPtarget = new THREE.Object3D();
+            var ratio=window.innerWidth/window.innerHeight;
+            var step = 0;
+            var speed = 10;
+            var matArrayA = [];
+            var moveForward=false;
+            var moveBackward=false;
+            var moveLeft=false;
+            var moveRight=false;
+            var SRtrue=false;
+            var prevTime=performance.now();
+            var velocity=new THREE.Vector3();
+            var direction=new THREE.Vector3();
+            var color=new THREE.Color();
+			      var snowflakes = [];
+            var rainDrops = [];
+
+            init();
+            animate();
+
+            function initGui() {
+                gui = {
+                    ambientLight:"#111111",
+                    directionalLight:"#ffffff",
+                    intensity:1,
+                    frist_person_view:false,
+                    time:0,
+                    pause:false,
+                    speed:10,
+                    weather: false,
+                    spring: function () {season('spring');},
+                    summer: function () {season('summer');},
+                    autumn: function () {season('autumn');},
+                    winter: function () {season('winter');}
+
+                };
+                var datGui = new dat.GUI();
+                var Folder1 = datGui.addFolder('Setting');
+                //datGui.add(gui,"time",0 ,1440).onChange(function (e) {
+                //  time = e;
+                //});
+                Folder1.add(gui,"speed",0 ,100).onChange(function (e) {
+                  speed = e;
+                });
+                Folder1.add(gui,"frist_person_view").onChange(function (e) {
+                  if(e){
+                    //scene.remove(controls);
+                    OnFPControl = true;
+                    setControl();
+                  }
+                  else{
+                    OnFPControl = false;
+                    setControl();
+                  }
+                });
+                Folder1.add(gui,"pause").onChange(function (e) {
+                  if(e){
+                    cancelAnimationFrame(id);
+                  }
+                  else{
+                    requestAnimationFrame(animate);
+                  }
+                });
+                Folder1.addColor(gui,"ambientLight").onChange(function (e) {
+                  ambientLight.color = new THREE.Color(e);
+                });
+                Folder1.addColor(gui,"directionalLight").onChange(function (e) {
+                  directionalLight.color = new THREE.Color(e);
+                });
+                Folder1.add(gui,"intensity",0,5).onChange(function (e) {
+                  directionalLight.intensity = e;
+                });
+                var Folder2 = datGui.addFolder('Season');
+                var Spring = Folder2.add(gui,'spring');
+                var Summer = Folder2.add(gui,'summer');
+                var Autumn = Folder2.add(gui,'autumn');
+                var Winter = Folder2.add(gui,'winter');
+                var Folder3 = datGui.addFolder('Weather');
+                var Rain_Snow = Folder3.add(gui, 'weather').onChange(function (e){
+                  if(e){
+                    weather();
+                    //console.log(currentSeason);
+                  }
+                  else{
+                    stopWeather();
+                  }
+                }) ;
+                Rain_Snow.name("Rain/Snow");
+              }
+            function init(){
+                scene=new THREE.Scene();
+                scene.fog = new THREE.Fog( scene.background, 3000, 5000 );
+                //loadSkyBox();
+                renderer = new THREE.WebGLRenderer({antialias:true});
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.setClearColor(0x4682B4,1);
+                renderer.shadowMapEnabled = true;
+                renderer.shadowMapSoft = true;
+                document.body.appendChild( renderer.domElement );
+
+                //initCamera();
+                initOBCamera();
+                initFPCamera();
+                initOBControls();
+                initFPControls();
+                setControl();
+                loadHouse();
+                loadTrees();
+                intiSnow();
+                intiRain();
+                //ItSnows();
+                //ItRains();
+                //loadChar();
+                initLight();
+                initGui();
+                createFloor();
+                createWallMaterail();
+                createCubeWall(10, 50, 1000, 0, matArrayA, -500, 25, 0, "Wall");
+                createCubeWall(10, 50, 1000, 0, matArrayA, 500, 25, 0, "Wall");
+                createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, -500, "Wall");
+                createCubeWall(10, 50, 1000, 0.5, matArrayA, 0, 25, 500, "Wall");
+                window.addEventListener('resize',onWindowResize,false);
+            }
+            function createFloor(){
+                var loader = new THREE.TextureLoader();
+                loader.load("img/grass-texture2.jpg",function(texture){
+                    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                    texture.repeat.set( 16, 16 );
+                    var floorGeometry = new THREE.PlaneGeometry(1000, 1000);
+                    var floorMaterial = new THREE.MeshLambertMaterial( { map: texture } );// side: THREE.DoubleSide
+                    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+                    floor.receiveShadow = true;
+                    floor.castShadow = true;
+                    floor.position.y = 0;
+                    floor.rotation.x = -Math.PI / 2;
+                    floor.name = "floor";
+                    scene.add(floor);
+                });
+            }
+            function initStats() {
+                var stats = new Stats();
+
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.left = '0px';
+                stats.domElement.style.top = '0px';
+
+                document.body.appendChild(stats.domElement);
+                return stats;
+            }
+            function onWindowResize(){
+                camera.aspect=window.innerWidth/window.innerHeight;
+                camera.updateProjectionMatrix();
+                //OBcamera.aspect=window.innerWidth/window.innerHeight;
+                //OBcamera.updateProjectionMatrix();
+                //FPcamera.aspect=window.innerWidth/window.innerHeight;
+                //FPcamera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth,window.innerHeight);
+            }
+            function animate(){
+                //requestAnimationFrame(animate);
+                id = requestAnimationFrame(animate);
+                movnigSun(directionalLight,speed * 0.0002);
+                if(OnFPControl){
+                    var time=performance.now();
+                    var delta=(time-prevTime)/1000;
+                    velocity.x-=velocity.x*10.0*delta;
+                    velocity.z-=velocity.z*10.0*delta;
+                    direction.z=Number(moveForward)-Number(moveBackward);
+                    direction.x=Number(moveLeft)-Number(moveRight);
+                    direction.normalize();
+                    if(moveForward || moveBackward) velocity.z-=direction.z*400.0*delta;
+                    if(moveLeft || moveRight) velocity.x-=direction.x*400.0*delta;
+                    FPcontrols.getObject().translateX(velocity.x*delta);
+                    FPcontrols.getObject().translateZ(velocity.z*delta);
+                    prevTime=time;
+                    console.debug(direction);
+                }
+                if(cube){
+                    for (var i = 0; i < cube.material.length; i++) {
+                        cube.material[i].color.setRGB(params.exposure,params.exposure,params.exposure);
+                    }
+                    ambientLight.intensity = params.exposure
+                }
+                stats.update();
+                renderer.render(scene,camera);
+            }
+            function setControl(){
+              if(!OnFPControl){
+                OBcamera.enabled = true;
+                FPcamera.enabled = false;
+                camera = OBcamera;
+                OBcontrols.enabled=true;
+                FPcontrols.enabled=false;
+                controls = OBcontrols;
+              }else{
+                //initFPControls();
+                OBcamera.enabled = false;
+                FPcamera.enabled = true;
+                camera = FPcamera;
+                OBcontrols.enabled=false;
+                FPcontrols.enabled=true;
+                controls = FPcontrols;
+              }
+            }
+            function intiSnow(){
+              var snowflakeGeometry = new THREE.PlaneBufferGeometry( 8, 8 );
+              var snowflakeTexture = new THREE.TextureLoader().load( "img/snowflake1.png" );
+              var snowflakeMateria = new THREE.MeshBasicMaterial({map: snowflakeTexture, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+              for ( var i = 0; i < 50; i++ ) {
+                for ( var j = 0; j < 50; j++ ) {
+                  snowflake = new THREE.Mesh( snowflakeGeometry, snowflakeMateria );
+                  snowflake.position.set( -50 + Math.random()*600 * Math.sin( i * 0.4 ),100,-50 + Math.random()*600 * Math.cos( j * 0.25 ));
+                  snowflake.scale.set(0.1,0.1,0.1);
+                  snowflake.visible=false;
+                  scene.add( snowflake );
+                  snowflakes.push( snowflake );
+                }
+              }
+            }
+            function ItSnows(){
+              snowing = requestAnimationFrame( ItSnows );
+              for( var i=0; i<snowflakes.length; i++ ){
+                var j = i+1;
+                if( j > 3 ){ j = i/4; }
+                if( j < 10 ){ j = 10*i; }
+                snowflakes[i].position.y -= j*0.0002*speed;
+                snowflakes[i].lookAt(camera.position);
+                if( snowflakes[i].position.y < -10 ){
+                  snowflakes[i].position.y = 140;
+                }
+              }
+            }
+            function intiRain(){
+              var rainDropGeometry = new THREE.PlaneBufferGeometry( 6, 6 );
+              var rainDropTexture = new THREE.TextureLoader().load( "img/RainDrop.png" );
+              var rainDropMateria = new THREE.MeshBasicMaterial({map: rainDropTexture, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+              for ( var i = 0; i < 50; i++ ) {
+                for ( var j = 0; j < 50; j++ ) {
+                  rainDrop = new THREE.Mesh( rainDropGeometry, rainDropMateria );
+                  rainDrop.position.set( -50 + Math.random()*600 * Math.sin( i * 0.4 ),100,-50 + Math.random()*600 * Math.cos( j * 0.25 ));
+                  rainDrop.scale.set(0.2,0.2,0.2);
+                  rainDrop.visible=false;
+                  scene.add( rainDrop );
+                  rainDrops.push( rainDrop );
+                }
+              }
+            }
+            function ItRains(){
+              raining = requestAnimationFrame( ItRains );
+              for( var i=0; i<rainDrops.length; i++ ){
+                var j = i+1;
+                if( j > 3 ){ j = i/2; }
+                if( j < 10 ){ j = 2*i; }
+                rainDrops[i].position.y -= j*0.001*speed;
+                rainDrops[i].lookAt(camera.position);
+                if( rainDrops[i].position.y < -10 ){
+                  rainDrops[i].position.y = 140;
+                }
+              }
+            }
+            function season(Season){
+              currentSeason = Season;
+              //stopWeather();
+              if (Season=='spring'){
+
+              }
+              if (Season=='summer'){
+
+              }
+              if (Season=='autumn'){
+
+              }
+              if (Season=='winter'){
+
+              }
+            }
+            function initCamera() {
+                //camera.shadowCameraVisible = true;
+                camera.position.set(OBpos.x,OBpos.y,OBpos.z);
+                camera.target = OBtarget;
+                //camera.enabled = true;
+            }
+            function initOBCamera() {
+                //camera.shadowCameraVisible = true;
+                OBcamera.position.set(OBpos.x,OBpos.y,OBpos.z);
+                OBtarget.position.set(new THREE.Vector3(0,0,0));
+                OBcamera.target = OBtarget;
+                OBcamera.enabled = false;
+            }
+            function initFPCamera() {
+                var Pos=new THREE.Vector3(0,0,0);
+                FPcamera.position.set(FPpos.x,FPpos.y,FPpos.z);
+                FPtarget.position.set(new THREE.Vector3(0,0,1));
+                FPcamera.lookAt(FPtarget);
+                FPcamera.enabled = false;
+            }
+            function initOBControls() {
+                OBcontrols = new THREE.OrbitControls( OBcamera, renderer.domElement );
+                OBcontrols.enabled=false;
+                OBcontrols.enableDamping = true;
+                OBcontrols.dampingFactor = 0.5;
+                OBcontrols.minDistance = 100;
+                OBcontrols.maxDistance = 2000;
+                OBcontrols.maxPolarAngle = Math.PI/2.2;
+            }
+            function initFPControls(){
+                FPcontrols=new THREE.PointerLockControls(FPcamera, renderer.domElement);
+                FPcontrols.enabled=false;
+                scene.add(FPcontrols.getObject());
+                var onKeyDown=function(event){
+                    switch(event.keyCode){
+                      case 38: //up
+                      case 87: //w
+                          moveForward=true;
+                          break;
+                      case 37: //left
+                      case 65: //a
+                          moveLeft=true;
+                          break;
+                      case 40: //down
+                      case 83: //s
+                          moveBackward=true;
+                          break;
+                      case 39: //right
+                      case 68: //d
+                          moveRight=true;
+                          break;
+                          }
+                      };
+                var onKeyUp=function(event){
+                    switch(event.keyCode){
+                      case 38: //up
+                      case 87: //w
+                          moveForward=false;
+                          break;
+                      case 37: //left
+                      case 65: //a
+                          moveLeft=false;
+                          break;
+                      case 40: //down
+                      case 83: //s
+                          moveBackward=false;
+                          break;
+                      case 39: //right
+                      case 68: //d
+                          moveRight=false;
+                          break;
+                        }
+                      };
+                document.addEventListener('keydown',onKeyDown,false);
+                document.addEventListener('keyup',onKeyUp,false);
+            }
+            function weather(){
+                if( currentSeason == 'winter' ){
+                  ItSnows();
+                  for (var i = 0; i < snowflakes.length; i++){
+                    snowflakes[i].visible = true;
+                  }
+                }
+                else{
+                  ItRains();
+                  for (var i = 0; i < rainDrops.length; i++){
+                    rainDrops[i].visible = true;
+                  }
+                }
+            }
+            function stopWeather(){
+              if( snowflakes[0].visible == true ){
+                cancelAnimationFrame(snowing);
+                for (var i = 0; i < snowflakes.length; i++){
+                  snowflakes[i].visible = false;
+                }
+              }
+              if(rainDrops[0].visible == true){
+                cancelAnimationFrame(raining);
+                for (var i = 0; i < rainDrops.length; i++){
+                  rainDrops[i].visible = false;
+                }
+              }
+            }
+            function loadSkyBox(){
+                const geometry=new THREE.CubeGeometry(10000,100,10000);
+
+                const manager = new THREE.LoadingManager();
+                const loader = new THREE.TextureLoader(manager);
+
+                const tex1 = loader.load( 'img/sky2.jpg' );
+                const tex2 = loader.load( 'img/sky2_new.jpg' );
+                var texture = loader.load( 'img/grass-texture4.jpg' );
+                const tex3 = loader.load( 'img/sky1.jpg' );
+
+                texture.wrapS=THREE.RepeatWrapping;
+                texture.wrapT=THREE.RepeatWrapping;
+                texture.repeat.set(128,128);
+
+                manager.onLoad = function() {
+
+                    const cubeMaterials= [
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //left
+                        new THREE.MeshBasicMaterial({map:tex1, side:THREE.DoubleSide}), //right
+                        new THREE.MeshBasicMaterial({map:tex3, side:THREE.DoubleSide}), //up
+                        new THREE.MeshBasicMaterial({map:texture, side:THREE.DoubleSide}), //down
+                        new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide}), //front
+                        new THREE.MeshBasicMaterial({map:tex2, side:THREE.DoubleSide})  //back
+                    ];
+                    cube=new THREE.Mesh(geometry,cubeMaterials);
+                    scene.add(cube);
+                }
+              }
+            function loadHouse(){
+                var mtlLoader=new THREE.MTLLoader();
+                //mtlLoader.setTexturePath("model/house/");
+                //mtlLoader.setPath("model/house/");
+                mtlLoader.load(
+                    "model/house/house_10.mtl", function(materials){
+                        materials.preload();
+                        materials.materials["grass_ground"].transparent = true;
+	                      materials.materials["grass_ground"].opacity = 0;
+                        materials.materials["roof_01"].color = new THREE.Color(0, 0.5, 1)
+                        var objLoader=new THREE.OBJLoader();
+                        objLoader.setMaterials(materials);
+                        objLoader.load(
+                            //resource url
+                            "model/house/house_10.obj",
+                            //called when resource is loaded
+                            function(object){
+                              object.traverse( function( child ) {
+                                if ( child instanceof THREE.Mesh ) {
+                                  //child.material = Basic_material;
+                                  child.castShadow = true;
+                                  child.receiveShadow = true;
+                            }
+                          });
+                                object.position.y=4;
+                                object.position.z=-100;
+                                object.scale.set(25,25,25);
+                                scene.add(object);
+                            },
+                            //called when loading is in progresses
+                            function(xhr){
+                                console.log((xhr.loaded/xhr.total*100)+'% loaded');
+                            },
+                            //called when loading has errors
+                            function (error){
+                                console.log('An error happened'+error);
+                            }
+                        );
+                    }
+                );
+            }
+            function createTree(x,y,z){
+              var mtlLoader=new THREE.MTLLoader();
+              mtlLoader.load(
+                  "model/tree1/shu.mtl", function(materials){
+                      materials.preload();
+                      materials.materials["dashuzhi"].transparent = true;
+                      materials.materials["dashuzhi"].alphaTest = 0.7;
+                      var objLoader=new THREE.OBJLoader();
+                      objLoader.setMaterials(materials);
+                      objLoader.load(
+                          "model/tree1/shu.obj",
+                          function(object){
+                            object.traverse( function( child ) {
+                                if ( child instanceof THREE.Mesh ) {
+                                  //child.material = Basic_material;
+                                  child.castShadow = true;
+                                  child.receiveShadow = true;
+                                }
+                              });
+                              object.scale.set(0.1,0.1,0.1);
+                              object.position.set(x,y,z);
+                              scene.add(object);
+                          },
+                      );
+                  }
+              );
+            }
+            function loadTrees(){
+              createTree(200,25,50);
+              createTree(100,25,20);
+              createTree(-100,25,30);
+              createTree(50,25,100);
+              createTree(-100,25,-200);
+            }
+            function loadChar(){
+                var mtlLoader=new THREE.MTLLoader();
+                //mtlLoader.setTexturePath("model/house/");
+                //mtlLoader.setPath("model/house/");
+                mtlLoader.load(
+                    "model/char/Doll_for_fafa.mtl", function(materials){
+                        materials.preload();
+                        materials.setMaterials('blinn7SG');
+                        //materials.materials["grass_ground"].opacity = 0;
+                        //materials.materials["grass_ground"].color = new THREE.Color(0x00000, 1.0)
+                        var objLoader=new THREE.OBJLoader();
+                        objLoader.setMaterials(materials);
+                        objLoader.load(
+                            //resource url
+                            "model/char/Doll_for_fafa.obj",
+                            //called when resource is loaded
+                            function(object){
+                              object.traverse( function( child ) {
+                                if ( child instanceof THREE.Mesh ) {
+                                  //child.material = Basic_material;
+                                  child.castShadow = true;
+                                  child.receiveShadow = true;
+                            }
+                          });
+                                object.position.set(0,0,0)
+                                object.scale.set(1,1,1);
+                                scene.add(object);
+                            },
+                        );
+                    }
+                );
+            }
+            function createWallMaterail(){
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //前  0xafc0ca :灰色
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0x9cb2d1}));  //后  0x9cb2d1：淡紫
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //上  0xd6e4ec： 偏白色
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xd6e4ec}));  //下
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //左   0xafc0ca :灰色
+                  matArrayA.push(new THREE.MeshPhongMaterial({color: 0xafc0ca}));  //右
+
+            }
+            function createCubeWall(width, height, depth, angle, material, x, y, z, name){
+                var cubeGeometry = new THREE.BoxGeometry(width, height, depth );
+                var cube = new THREE.Mesh( cubeGeometry, material );
+                cube.castShadow = true;
+                cube.receiveShadow = true;
+                cube.position.x = x;
+                cube.position.y = y;
+                cube.position.z = z;
+                cube.rotation.y += angle*Math.PI;
+                cube.name = name;
+                scene.add(cube);
+            }
+            function initLight() {
+                directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+                var target = new THREE.Object3D();
+                target.position.set(0, 0, 0);
+                scene.add(target);
+                directionalLight.position.set( 500, 500, 0);
+                directionalLight.castShadow = true;
+                directionalLight.color.setHSL( 0.1, 1, 0.95 );
+                directionalLight.shadow.camera.near = 10;
+                directionalLight.shadow.camera.far = 1500;
+                directionalLight.shadow.camera.left = -500;
+                directionalLight.shadow.camera.right = 500;
+                directionalLight.shadow.camera.top = 600;
+                directionalLight.shadow.camera.bottom = -600;
+                directionalLight.shadowCameraVisible = true;
+                directionalLight.target = target;
+                directionalLight.shadow.mapSize.height = 2048;
+                directionalLight.shadow.mapSize.width = 2048;
+                scene.add( directionalLight) ;
+                var helper = new THREE.CameraHelper(directionalLight.shadow.camera);
+                scene.add(helper);
+                ambientLight = new THREE.AmbientLight( 0xffffff, 0.05 );
+                ambientLight.position.set(0,0,0);
+                scene.add( ambientLight );
+            }
+            function movnigSun(obj,speed){
+              step += speed;
+              obj.position.x = 750*(Math.cos(step));
+              obj.position.y = 750*(Math.sin(step));
+              //obj.target.updateMatrixWorld();
+            }
+        </script>
+    </body>
+</html>
